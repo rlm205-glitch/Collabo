@@ -1,1 +1,1 @@
-# Rate-my-Course-totally-orginal-
+# CWRU Personal Project Collaboration Hub
