@@ -1,4 +1,4 @@
-# CWRU Personal Project Collaboration Hub
+# Django Backend
 
 ## Explanation of Django
 
