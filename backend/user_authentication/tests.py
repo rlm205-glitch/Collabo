@@ -2,7 +2,7 @@ import json
 from django.test import TestCase
 from django.urls import reverse
 
-SUCCESS: int = 302
+SUCCESS: int = 200
 FAILURE: int = 400
 
 class AuthenticationTests(TestCase):
