@@ -6,6 +6,7 @@ npm run dev &
 FRONTEND_PID=$!
 
 cd ../backend
+./manage.py migrate 
 ./manage.py runserver &
 BACKEND_PID=$!
 
