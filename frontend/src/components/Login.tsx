@@ -7,7 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // simple front-end validation for now
@@ -17,7 +17,39 @@ export default function LoginPage() {
     }
 
     setError("");
-    alert(`Logging in as ${email} (backend hook-up next)`);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/authentication/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+        credentials: "include", // Include cookies for session handling
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          console.log("Login successful:", data);
+          window.location.href = data.redirect_url;
+        } else {
+          setError(data.error || "Login failed");
+        }
+      } else if (response.status === 400) {
+        const errorData = await response.json();
+        setError(errorData.error || "Invalid email or password.");
+      } else {
+        setError(`Login failed with status: ${response.status}`);
+      }
+    } catch (error) {
+      // Handle network errors or fetch failures
+      setError("Login error. Please try again.");
+      console.error("Login error:", error);
+    }
   }
 
   return (
