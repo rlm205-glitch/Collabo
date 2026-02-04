@@ -13,8 +13,6 @@ POST_LOGIN_PAGE_URL: str = "http://localhost:5173"
 
 @csrf_exempt
 def register_user(request: HttpRequest) -> HttpResponse:
-    print(f"Django Received the following request:\n- {request}")
-    print(f"{request.body}")
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -42,9 +40,6 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def login_user(request: HttpRequest) -> HttpResponse:
-    print(f"Django Received the following request:\n- {request}")
-    print(f"{request.body}")
-
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
