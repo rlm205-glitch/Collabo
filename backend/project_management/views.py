@@ -1,9 +1,11 @@
+from codecs import ignore_errors
+from ctypes import cast
 import json
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser, User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
@@ -22,19 +24,42 @@ def create_project(request: HttpRequest) -> HttpResponse:
 
     json_body: dict[str, str] = dict(json.loads(request.body))
 
+    if not request.user.is_authenticated:
+        return HttpResponseBadRequest(b"Couldn't Validate Account")
+
+
     try:
         project = Project.objects.create(
             title=json_body.get("title", ""),
             subtitle=json_body.get("subtitle", ""),
-            author=json_body.get("author", ""),
+            author=request.user.get_username(),
             description=json_body.get("description", ""),
             preferred_skills=json_body.get("preferred_skills", ""),
         )
 
-        project.members.add(request.user)
+        project.members.add(request.user) # type: ignore_errors
     except IntegrityError:
         return HttpResponseBadRequest(b"This project has been created already")
     except Exception:
         return HttpResponseBadRequest(b"Failed to create project")
+
+    return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})
+
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def join_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    try:
+        project = Project.objects.get(
+            id=json_body.get("project_id", "")
+        )
+
+        project.members.add(request.user) # type: ignore_errors
+    except Exception:
+        return HttpResponseBadRequest(b"Failed to join project")
 
     return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})

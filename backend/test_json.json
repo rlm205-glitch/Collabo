@@ -1,7 +1,0 @@
-{
-  "title": "Atlas",
-  "subtitle": "A lightweight project management dashboard for small teams",
-  "author": "Xander Jhaveri",
-  "description": "Atlas is a web-based dashboard designed to help small development teams track tasks, deadlines, and progress without the overhead of enterprise tools. It emphasizes simplicity, speed, and clarity while still supporting core collaboration features.",
-  "preferred_skills": "Python, Django, REST APIs, PostgreSQL, Git"
-}
