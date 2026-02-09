@@ -31,10 +31,15 @@ def create_project(request: HttpRequest) -> HttpResponse:
     try:
         project = Project.objects.create(
             title=json_body.get("title", ""),
-            subtitle=json_body.get("subtitle", ""),
+            short_description=json_body.get("short_description", ""),
             author=request.user.get_username(),
-            description=json_body.get("description", ""),
+            extended_description=json_body.get("extended_description", ""),
+
             preferred_skills=json_body.get("preferred_skills", ""),
+            project_type=json_body.get("project_type"),
+            workload_per_week=json_body.get("workload_per_week"),
+            preferred_contact_method=json_body.get("preferred_contact_method"),
+            contact_information=json_body.get("contact_information"),
         )
 
         project.members.add(request.user) # type: ignore_errors
@@ -43,7 +48,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
     except Exception:
         return HttpResponseBadRequest(b"Failed to create project")
 
-    return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})
+    return JsonResponse({"success": True, "project_id": project.id, "redirect_url": HOME_PAGE_URL})
 
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
