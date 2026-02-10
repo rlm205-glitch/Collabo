@@ -23,6 +23,7 @@ class AuthenticationTests(TestCase):
                 data=json.dumps(json_data),
                 content_type="application/json"
             )
+
             
             self.assertEqual(response.status_code, expected, f"- Email: {email},\n- Password: {password},\n- Expected Response: {expected}\n{response.content}")
 

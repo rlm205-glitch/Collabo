@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "api",
     "user_authentication",
+    "project_management",
 ]
 
 MIDDLEWARE = [
