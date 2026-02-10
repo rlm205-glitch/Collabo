@@ -1,20 +1,12 @@
 import { Link } from "react-router-dom"
-import {useEffect, useState} from "react"
 function HomePage() {
-    const [backendMessage, setBackendMessage] = useState<string>("Loading...")
-
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/apicall/print_hello_world")
-      .then(res => res.json())
-      .then(data => setBackendMessage(data.message))
-      .catch(() => setBackendMessage("Backend not reachable"))
-  }, [])
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-8">
       <p>Home Page Yay!</p>
-      <p>Backend says: {backendMessage}</p>
-      <Link to="/login">Login Page</Link>
+      <Link to="/login">
+        Go to Login Page
+      </Link>
     </div>
   )
 }
