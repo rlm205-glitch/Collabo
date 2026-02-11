@@ -52,6 +52,7 @@ class ProjectTests(TestCase):
 
         _ = self.client.login(username="testuser", password="TestPswd123!")
 
+
         for (title, short_description, extended_description, preferred_skills) in testcases:
             json_data = {
                 "title": title,
