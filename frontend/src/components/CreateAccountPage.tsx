@@ -2,23 +2,31 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 
-interface LoginPageProps {
-  onLogin: (email: string, password: string) => Promise<string | null>;
+interface CreateAccountPageProps {
+  onRegister: (email: string, password: string, firstName: string, lastName: string) => Promise<string | null>;
 }
 
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function CreateAccountPage({ onRegister }: CreateAccountPageProps) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!firstName || !lastName || !email || !password || !confirmPassword) return;
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
     setError('');
     setLoading(true);
-    const err = await onLogin(email, password);
+    const err = await onRegister(email, password, firstName, lastName);
     setLoading(false);
     if (err) setError(err);
   };
@@ -31,7 +39,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <LogIn className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">CWRU Collaboration Platform</h1>
-          <p className="text-gray-600">Find teammates for your next big project</p>
+          <p className="text-gray-600">Create your account to get started</p>
         </div>
 
         {error && (
@@ -41,6 +49,36 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              First Name
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="John"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Smith"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               CWRU Email
@@ -71,19 +109,34 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             />
           </div>
 
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
         <p className="text-sm text-gray-600 text-center mt-6">
-          Don't have an account?{' '}
-          <Link to="/create-account" className="text-blue-600 hover:underline font-medium">
-            Create an account
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-600 hover:underline font-medium">
+            Sign in
           </Link>
         </p>
 
