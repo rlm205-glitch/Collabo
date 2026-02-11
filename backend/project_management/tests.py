@@ -52,12 +52,18 @@ class ProjectTests(TestCase):
 
         _ = self.client.login(username="testuser", password="TestPswd123!")
 
-        for (title, subtitle, description, preferred_skills) in testcases:
+
+        for (title, short_description, extended_description, preferred_skills) in testcases:
             json_data = {
                 "title": title,
-                "subtitle": subtitle,
-                "description": description,
+                "short_description": short_description,
+                "extended_description": extended_description,
+
                 "preferred_skills": preferred_skills,
+                "project_type": "Mobile App",
+                "workload_per_week": "5-10 hours",
+                "preferred_contact_method": "email",
+                "contact_information": "testuser@case.edu",
             }
 
             response = self.client.post(
@@ -107,12 +113,17 @@ class ProjectTests(TestCase):
 
         _ = self.client.login(username="project creator", password="TestPswd123!")
 
-        for (title, subtitle, description, preferred_skills) in testcases:
+        for (title, short_description, extended_description, preferred_skills) in testcases:
             json_data = {
                 "title": title,
-                "subtitle": subtitle,
-                "description": description,
+                "short_description": short_description,
+                "extended_description": extended_description,
+
                 "preferred_skills": preferred_skills,
+                "project_type": "Mobile App",
+                "workload_per_week": "5-10 hours",
+                "preferred_contact_method": "email",
+                "contact_information": "testuser@case.edu",
             }
 
             response = self.client.post(
