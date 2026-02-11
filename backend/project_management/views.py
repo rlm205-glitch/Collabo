@@ -68,3 +68,4 @@ def join_project(request: HttpRequest) -> HttpResponse:
         return HttpResponseBadRequest(b"Failed to join project")
 
     return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})
+
