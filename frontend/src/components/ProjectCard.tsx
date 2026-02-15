@@ -63,7 +63,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
             </div>
           </div>
         )}
-        
+
         <div className="flex justify-between items-start mb-3">
           <h3 className="font-bold text-gray-900 text-lg">{project.title}</h3>
           {isOwner && (
@@ -92,7 +92,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
           </span>
         </div>
 
-        <div 
+        <div
           onClick={() => setShowDetailsModal(true)}
           className="cursor-pointer"
         >
@@ -133,25 +133,37 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
             <strong>Posted by:</strong> {project.userName}
           </p>
           <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setShowJoinModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
-            >
-              <span>Request to Join</span>
-            </button>
-            {!isOwner && (
-              <button
-                onClick={() => setShowReportModal(true)}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Report project"
-              >
-                <Flag className="w-4 h-4" />
-              </button>
+            {isOwner ? (
+              <div className="flex justify-center w-full">
+                <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
+                  Your Project
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-1">
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
+                >
+                  <span>Request to Join</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(true)}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Report project"
+                >
+                  <Flag className="w-4 h-4" />
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+
 
       {/* Edit Modal */}
       {showEditModal && (
@@ -302,7 +314,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
         </div>
       )}
 
-        
+
       {/* Details Modal */}
       {showDetailsModal && (
         <ProjectDetailsModal
