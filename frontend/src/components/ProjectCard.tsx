@@ -16,6 +16,7 @@ interface ProjectCardProps {
 export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport }: ProjectCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
 
@@ -131,12 +132,13 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
             <strong>Posted by:</strong> {project.userName}
           </p>
           <div className="flex items-center justify-between gap-2">
-            <a
-              href={`mailto:${project.contactInfo}`}
+            <button
+              type="button"
+              onClick={() => setShowJoinModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
             >
-              <span>Request To Join</span>
-            </a>
+              <span>Request to Join</span>
+            </button>
             {!isOwner && (
               <button
                 onClick={() => setShowReportModal(true)}
@@ -195,7 +197,50 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
           </div>
         </div>
       )}
+      
+      {showJoinModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setShowJoinModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Request to Join
+            </h3>
 
+            <p className="text-sm text-gray-600 mb-6">
+              Send a join request to{" "}
+              <span className="font-medium">{project.userName}</span> for{" "}
+              <span className="font-medium">{project.title}</span>?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowJoinModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowJoinModal(false);
+                  alert("Request sent (mock).");
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+        
       {/* Details Modal */}
       {showDetailsModal && (
         <ProjectDetailsModal
