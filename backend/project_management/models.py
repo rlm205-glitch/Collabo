@@ -8,7 +8,7 @@ class Project(models.Model):
     author = models.TextField(max_length=70, help_text='Project Creator')
     extended_description = models.TextField(max_length=10000, help_text='Project Description', default="")
     
-    preferred_skills = models.TextField(max_length=300, help_text='Preferred Skills')
+    preferred_skills = models.JSONField(default=list)
     project_type = models.TextField(max_length=50, help_text='Project Type', default="Other")
     workload_per_week = models.TextField(max_length=50, help_text='Workload', default="")
     preferred_contact_method = models.TextField(max_length=50, help_text='Preferred Contact Method', default="")
