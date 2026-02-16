@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import type { Project } from '../App';
-import { X, Calendar, Clock, Mail, Tag, User } from 'lucide-react';
+import { X, Calendar, Clock, Mail, Tag, User, UserPlus } from 'lucide-react';
 
 interface ProjectDetailsModalProps {
   project: Project;
+  isOwner: boolean;
   onClose: () => void;
+  onJoin: (projectId: string) => Promise<boolean>;
 }
 
-export function ProjectDetailsModal({ project, onClose }: ProjectDetailsModalProps) {
+export function ProjectDetailsModal({ project, isOwner, onClose, onJoin }: ProjectDetailsModalProps) {
+  const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', { 
       month: 'long', 
@@ -99,22 +104,61 @@ export function ProjectDetailsModal({ project, onClose }: ProjectDetailsModalPro
             </div>
           )}
 
-          {/* Contact Information */}
+          {/* Contact & Join */}
           <div className="border-t border-gray-200 pt-6">
-            <h3 className="font-bold text-gray-900 mb-3">Interested in Collaborating?</h3>
-            <p className="text-gray-600 mb-4">
-              Reach out to {project.userName} to express your interest and discuss the project in more detail.
-            </p>
-            <a
-              href={`mailto:${project.contactInfo}`}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Mail className="w-5 h-5" />
-              <span>Contact via {project.contactMethod}</span>
-            </a>
-            <p className="text-sm text-gray-500 mt-2">
-              {project.contactInfo}
-            </p>
+            {isOwner ? (
+              <div className="text-center">
+                <span className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">
+                  Your Project
+                </span>
+              </div>
+            ) : joined ? (
+              <div className="text-center">
+                <span className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-full">
+                  Joined successfully!
+                </span>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-bold text-gray-900 mb-3">Interested in Collaborating?</h3>
+                <p className="text-gray-600 mb-4">
+                  Join this project to collaborate with {project.userName}.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={async () => {
+                      setJoining(true);
+                      const success = await onJoin(project.id);
+                      setJoining(false);
+                      if (success) {
+                        setJoined(true);
+                      } else {
+                        alert('Failed to join project. Please try again.');
+                      }
+                    }}
+                    disabled={joining}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    <span>{joining ? 'Joining...' : 'Join Project'}</span>
+                  </button>
+                  {project.contactInfo && (
+                    <a
+                      href={`mailto:${project.contactInfo}`}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <Mail className="w-5 h-5" />
+                      <span>Contact via {project.contactMethod}</span>
+                    </a>
+                  )}
+                </div>
+                {project.contactInfo && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    {project.contactInfo}
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

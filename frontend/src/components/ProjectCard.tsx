@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Project, User } from '../App';
-import { Calendar, Clock, Mail, Edit2, Trash2, Flag, ExternalLink, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Edit2, Trash2, Flag, AlertCircle } from 'lucide-react';
 import { EditProjectModal } from './EditProjectModal';
 import { ProjectDetailsModal } from './ProjectDetailsModal';
 
@@ -11,15 +11,16 @@ interface ProjectCardProps {
   onEdit: (updates: Partial<Project>) => void;
   onDelete: () => void;
   onReport: (projectId: string, reason: string) => void;
+  onGetProjectDetails: (projectId: string) => Promise<Project | null>;
+  onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
-export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport }: ProjectCardProps) {
+export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport, onGetProjectDetails, onJoinProject }: ProjectCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showJoinModal, setShowJoinModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailedProject, setDetailedProject] = useState<Project | null>(null);
   const [reportReason, setReportReason] = useState('');
-  const [joinMessage, setJoinMessage] = useState("");
 
   const handleReport = () => {
     if (reportReason.trim()) {
@@ -36,6 +37,14 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
   // Calculate days since posted
   const daysSincePosted = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
   const needsRefresh = daysSincePosted > 30;
+
+  const handleViewDetails = async () => {
+    const details = await onGetProjectDetails(project.id);
+    if (details) {
+      setDetailedProject(details);
+      setShowDetailsModal(true);
+    }
+  };
 
   const handleRefreshPost = () => {
     onEdit({ createdAt: new Date() });
@@ -93,7 +102,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
         </div>
 
         <div
-          onClick={() => setShowDetailsModal(true)}
+          onClick={handleViewDetails}
           className="cursor-pointer"
         >
           <p className="text-gray-600 text-sm mb-4 line-clamp-3 hover:text-gray-800 transition-colors">
@@ -143,10 +152,10 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
               <div className="flex items-center gap-2 flex-1">
                 <button
                   type="button"
-                  onClick={() => setShowJoinModal(true)}
+                  onClick={handleViewDetails}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
                 >
-                  <span>Request to Join</span>
+                  <span>View & Join</span>
                 </button>
 
                 <button
@@ -211,115 +220,16 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
         </div>
       )}
 
-      {/* Join Modal */}
-      {showJoinModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setShowJoinModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg max-w-lg w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Title */}
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Request to Join
-            </h3>
-
-            <p className="text-sm text-gray-600 mb-6">
-              Your request will be sent to{" "}
-              <span className="font-medium">{project.userName}</span>.
-            </p>
-
-            {/* Profile Preview */}
-            <div className="space-y-4 mb-6">
-              <h4 className="text-sm font-semibold text-gray-800">
-                Profile Info (will be included)
-              </h4>
-
-              <div className="grid grid-cols-1 gap-3 text-sm">
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-gray-500">Major</p>
-                  <p className="font-medium">{currentUser.major || "Not set"}</p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-gray-500">Skills</p>
-                  <p className="font-medium">
-                    {currentUser.skills?.length > 0
-                      ? currentUser.skills.join(", ")
-                      : "Not set"}
-                  </p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-gray-500">Interests</p>
-                  <p className="font-medium">
-                    {currentUser.interests?.length > 0
-                      ? currentUser.interests.join(", ")
-                      : "Not set"}
-                  </p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-gray-500">Availability</p>
-                  <p className="font-medium">
-                    {currentUser.availability || "Not set"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Message Box */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Short Message (optional)
-              </label>
-              <textarea
-                value={joinMessage}
-                onChange={(e) => setJoinMessage(e.target.value)}
-                placeholder="Hi! I'd love to join because..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowJoinModal(false);
-                  setJoinMessage("");
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  // UI-only mock submit
-                  alert("Join request submitted (mock).");
-                  setShowJoinModal(false);
-                  setJoinMessage("");
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Submit Request
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
       {/* Details Modal */}
-      {showDetailsModal && (
+      {showDetailsModal && detailedProject && (
         <ProjectDetailsModal
-          project={project}
-          onClose={() => setShowDetailsModal(false)}
+          project={detailedProject}
+          isOwner={isOwner}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setDetailedProject(null);
+          }}
+          onJoin={onJoinProject}
         />
       )}
     </>

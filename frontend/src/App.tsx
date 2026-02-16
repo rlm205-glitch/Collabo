@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
@@ -60,6 +60,94 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const navigate = useNavigate();
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch('/project_management/list_projects/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const mapped: Project[] = data.condensed_projects.map((p: any) => ({
+            id: String(p.id),
+            title: p.title,
+            description: p.short_description || '',
+            userName: p.author,
+            userEmail: p.author,
+            userId: '',
+            projectType: p.project_type || '',
+            preferredSkills: p.preferred_skills || [],
+            isActive: true,
+            fullDescription: '',
+            timeCommitment: '',
+            contactMethod: '',
+            contactInfo: '',
+            createdAt: new Date(),
+          }));
+          setProjects(mapped);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch projects:', e);
+    }
+  };
+
+  const getProjectDetails = async (projectId: string): Promise<Project | null> => {
+    try {
+      const res = await fetch('/project_management/get_project/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(projectId) }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const p = data.project;
+        return {
+          id: String(p.id),
+          title: p.title,
+          description: p.short_description || '',
+          fullDescription: p.extended_description || '',
+          userName: p.author,
+          userEmail: p.author,
+          userId: '',
+          projectType: p.project_type || '',
+          preferredSkills: p.preferred_skills || [],
+          timeCommitment: p.workload_per_week || '',
+          contactMethod: p.preferred_contact_method || '',
+          contactInfo: p.contact_information || '',
+          isActive: true,
+          createdAt: new Date(),
+        };
+      }
+    } catch (e) {
+      console.error('Failed to get project details:', e);
+    }
+    return null;
+  };
+
+  const joinProject = async (projectId: string): Promise<boolean> => {
+    try {
+      const res = await fetch('/project_management/join_project/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(projectId) }),
+      });
+      const data = await res.json();
+      return data.success;
+    } catch (e) {
+      console.error('Failed to join project:', e);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchProjects();
+    }
+  }, [currentUser]);
 
   const handleLogin = async (email: string, password: string): Promise<string | null> => {
     const res = await fetch('/authentication/login/', {
@@ -124,13 +212,29 @@ function App() {
     setCurrentUser(updatedUser);
   };
 
-  const addProject = (project: Omit<Project, 'id' | 'createdAt'>) => {
-    const newProject: Project = {
-      ...project,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-    };
-    setProjects([newProject, ...projects]);
+  const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
+    try {
+      const res = await fetch('/project_management/create_project/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: project.title,
+          short_description: project.description,
+          extended_description: project.fullDescription || project.description,
+          project_type: project.projectType,
+          preferred_skills: project.preferredSkills,
+          workload_per_week: project.timeCommitment,
+          preferred_contact_method: project.contactMethod,
+          contact_information: project.contactInfo,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchProjects();
+      }
+    } catch (e) {
+      console.error('Failed to create project:', e);
+    }
   };
 
   const updateProject = (projectId: string, updates: Partial<Project>) => {
@@ -199,6 +303,8 @@ function App() {
       onUpdateProject={updateProject}
       onDeleteProject={deleteProject}
       onReportProject={reportProject}
+      onGetProjectDetails={getProjectDetails}
+      onJoinProject={joinProject}
     />
   );
 }

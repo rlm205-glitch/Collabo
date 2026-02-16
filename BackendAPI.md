@@ -56,7 +56,7 @@
 
 ### Get Project: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/join_project
+- URL: {backend ip}/project_management/get_project
 - Requires Login (Handled automatically by Django)
 - JSON Request Data:
 
@@ -87,9 +87,9 @@
 }
 ```
 
-### List Project: Via HTTP POST with JSON data
+### List Projects: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/join_project
+- URL: {backend ip}/project_management/list_projects
 - Requires Login (Handled automatically by Django)
 - JSON Request Data:
 
@@ -112,13 +112,8 @@
     "title": title,
     "short_description": short_description,
     "author": author,
-    "extended_description": extended_description,
     "preferred_skills": preferred_skills,
     "project_type": project_type,
-    "workload_per_week": workload_per_week,
-    "preferred_contact_method": preferred_contact_method,
-    "contact_information": contact_information,
-    "members": [member user ids]
   },
   project_count: {*size of projects object*}
 }
