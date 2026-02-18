@@ -15,6 +15,8 @@ interface StudentDashboardProps {
   onUpdateProject: (projectId: string, updates: Partial<Project>) => void;
   onDeleteProject: (projectId: string) => void;
   onReportProject: (projectId: string, reason: string) => void;
+  onGetProjectDetails: (projectId: string) => Promise<Project | null>;
+  onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
 export function StudentDashboard({
@@ -27,6 +29,8 @@ export function StudentDashboard({
   onUpdateProject,
   onDeleteProject,
   onReportProject,
+  onGetProjectDetails,
+  onJoinProject,
 }: StudentDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectType, setSelectedProjectType] = useState('All');
@@ -56,7 +60,7 @@ export function StudentDashboard({
     return matchesSearch && matchesType && matchesSkill && matchesCommitment;
   });
 
-  const myProjects = projects.filter(p => p.userId === currentUser.id && p.isActive);
+  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,6 +105,8 @@ export function StudentDashboard({
                   onEdit={(updates) => onUpdateProject(project.id, updates)}
                   onDelete={() => onDeleteProject(project.id)}
                   onReport={onReportProject}
+                  onGetProjectDetails={onGetProjectDetails}
+                  onJoinProject={onJoinProject}
                 />
               ))}
             </div>
@@ -196,10 +202,12 @@ export function StudentDashboard({
                   key={project.id}
                   project={project}
                   currentUser={currentUser}
-                  isOwner={project.userId === currentUser.id}
+                  isOwner={project.userName === currentUser.email}
                   onEdit={(updates) => onUpdateProject(project.id, updates)}
                   onDelete={() => onDeleteProject(project.id)}
                   onReport={onReportProject}
+                  onGetProjectDetails={onGetProjectDetails}
+                  onJoinProject={onJoinProject}
                 />
               ))}
             </div>

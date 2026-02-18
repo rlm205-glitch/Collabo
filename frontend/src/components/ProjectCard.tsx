@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Project, User } from '../App';
-import { Calendar, Clock, Mail, Edit2, Trash2, Flag, ExternalLink, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Edit2, Trash2, Flag, AlertCircle } from 'lucide-react';
 import { EditProjectModal } from './EditProjectModal';
 import { ProjectDetailsModal } from './ProjectDetailsModal';
 
@@ -11,15 +11,16 @@ interface ProjectCardProps {
   onEdit: (updates: Partial<Project>) => void;
   onDelete: () => void;
   onReport: (projectId: string, reason: string) => void;
+  onGetProjectDetails: (projectId: string) => Promise<Project | null>;
+  onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
-export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport }: ProjectCardProps) {
+export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport, onGetProjectDetails, onJoinProject }: ProjectCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showJoinModal, setShowJoinModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailedProject, setDetailedProject] = useState<Project | null>(null);
   const [reportReason, setReportReason] = useState('');
-  const [joinMessage, setJoinMessage] = useState("");
 
   const handleReport = () => {
     if (reportReason.trim()) {
@@ -36,6 +37,22 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
   // Calculate days since posted
   const daysSincePosted = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
   const needsRefresh = daysSincePosted > 30;
+
+  const handleViewDetails = async () => {
+    const details = await onGetProjectDetails(project.id);
+    if (details) {
+      setDetailedProject(details);
+      setShowDetailsModal(true);
+    }
+  };
+
+  const handleEditClick = async () => {
+    const details = await onGetProjectDetails(project.id);
+    if (details) {
+      setDetailedProject(details);
+      setShowEditModal(true);
+    }
+  };
 
   const handleRefreshPost = () => {
     onEdit({ createdAt: new Date() });
@@ -69,7 +86,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
           {isOwner && (
             <div className="flex gap-2">
               <button
-                onClick={() => setShowEditModal(true)}
+                onClick={handleEditClick}
                 className="text-blue-600 hover:text-blue-700 p-1"
                 title="Edit project"
               >
@@ -93,7 +110,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
         </div>
 
         <div
-          onClick={() => setShowDetailsModal(true)}
+          onClick={handleViewDetails}
           className="cursor-pointer"
         >
           <p className="text-gray-600 text-sm mb-4 line-clamp-3 hover:text-gray-800 transition-colors">
@@ -143,10 +160,10 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
               <div className="flex items-center gap-2 flex-1">
                 <button
                   type="button"
-                  onClick={() => setShowJoinModal(true)}
+                  onClick={handleViewDetails}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
                 >
-                  <span>Request to Join</span>
+                  <span>View & Join</span>
                 </button>
 
                 <button
@@ -166,10 +183,13 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
 
 
       {/* Edit Modal */}
-      {showEditModal && (
+      {showEditModal && detailedProject && (
         <EditProjectModal
-          project={project}
-          onClose={() => setShowEditModal(false)}
+          project={detailedProject}
+          onClose={() => {
+            setShowEditModal(false);
+            setDetailedProject(null);
+          }}
           onSave={onEdit}
         />
       )}
@@ -314,10 +334,15 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
 
 
       {/* Details Modal */}
-      {showDetailsModal && (
+      {showDetailsModal && detailedProject && (
         <ProjectDetailsModal
-          project={project}
-          onClose={() => setShowDetailsModal(false)}
+          project={detailedProject}
+          isOwner={isOwner}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setDetailedProject(null);
+          }}
+          onJoin={onJoinProject}
         />
       )}
     </>
