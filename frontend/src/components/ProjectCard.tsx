@@ -214,11 +214,11 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
       {/* Join Modal */}
       {showJoinModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-blue-50 bg-opacity-50 flex items-center justify-center p-4 z-50"
           onClick={() => setShowJoinModal(false)}
         >
           <div
-            className="bg-white rounded-lg max-w-lg w-full p-6"
+            className="bg-white rounded-lg max-w-md w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Title */}
@@ -246,16 +246,14 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
                 <div className="p-3 bg-gray-50 rounded border">
                   <p className="text-gray-500">Skills</p>
                   <p className="font-medium">
-                    {currentUser.skills?.length > 0
-                      ? currentUser.skills.join(", ")
-                      : "Not set"}
+                   {currentUser?.skills && currentUser.skills.length > 0 ? currentUser.skills.join(", ") : "Not set"}                
                   </p>
                 </div>
 
                 <div className="p-3 bg-gray-50 rounded border">
                   <p className="text-gray-500">Interests</p>
                   <p className="font-medium">
-                    {currentUser.interests?.length > 0
+                    {currentUser?.interests && currentUser.interests?.length > 0
                       ? currentUser.interests.join(", ")
                       : "Not set"}
                   </p>
