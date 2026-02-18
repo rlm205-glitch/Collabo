@@ -107,16 +107,6 @@ export function CreateAccountPage({ onRegister }: CreateAccountPageProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
-            {/* Password requirements (Django default validators) */}
-  <div className="mt-2 text-xs text-gray-600">
-    <p className="font-medium">Password requirements:</p>
-    <ul className="list-disc pl-5 mt-1 space-y-1">
-      <li>At least 8 characters</li>
-      <li>Not too similar to your name or email</li>
-      <li>Not a common password</li>
-      <li>Not entirely numeric</li>
-    </ul>
-  </div>
           </div>
 
           <div>
