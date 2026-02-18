@@ -46,6 +46,14 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
     }
   };
 
+  const handleEditClick = async () => {
+    const details = await onGetProjectDetails(project.id);
+    if (details) {
+      setDetailedProject(details);
+      setShowEditModal(true);
+    }
+  };
+
   const handleRefreshPost = () => {
     onEdit({ createdAt: new Date() });
     alert('Your project post has been refreshed!');
@@ -78,7 +86,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
           {isOwner && (
             <div className="flex gap-2">
               <button
-                onClick={() => setShowEditModal(true)}
+                onClick={handleEditClick}
                 className="text-blue-600 hover:text-blue-700 p-1"
                 title="Edit project"
               >
@@ -175,10 +183,13 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
 
 
       {/* Edit Modal */}
-      {showEditModal && (
+      {showEditModal && detailedProject && (
         <EditProjectModal
-          project={project}
-          onClose={() => setShowEditModal(false)}
+          project={detailedProject}
+          onClose={() => {
+            setShowEditModal(false);
+            setDetailedProject(null);
+          }}
           onSave={onEdit}
         />
       )}
