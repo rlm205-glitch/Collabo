@@ -61,6 +61,31 @@ export function StudentDashboard({
     return matchesSearch && matchesType && matchesSkill && matchesCommitment;
   });
 
+  // --- Best Match scoring + sorting ---
+  const normalize = (s: string) => s.toLowerCase().trim();
+
+  const mySkills = (currentUser.skills ?? []).map(normalize);
+  const myInterests = (currentUser.interests ?? []).map(normalize);
+
+  const scoreProject = (project: Project) => {
+    let score = 0;
+
+    // +1 if any preferred skill matches my skills
+    const projectSkills = (project.preferredSkills ?? []).map(normalize);
+    if (projectSkills.some(s => mySkills.includes(s))) score += 1;
+
+    // +1 if any of my interests appears in title/description
+    const text = normalize(project.title + ' ' + project.description);
+    if (myInterests.some(i => i && text.includes(i))) score += 1;
+
+    return score;
+  };
+
+  const displayedProjects =
+    sortOption === 'best'
+      ? [...filteredProjects].sort((a, b) => scoreProject(b) - scoreProject(a))
+      : filteredProjects;
+
   const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);
 
   return (
