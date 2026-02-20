@@ -49,11 +49,11 @@ export function StudentDashboard({
   // Filter projects
   const filteredProjects = projects.filter(project => {
     if (!project.isActive) return false;
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = selectedProjectType === 'All' || project.projectType === selectedProjectType;
     const matchesSkill = selectedSkill === 'All' || project.preferredSkills.includes(selectedSkill);
     const matchesCommitment = selectedCommitment === 'All' || project.timeCommitment === selectedCommitment;
@@ -133,6 +133,20 @@ export function StudentDashboard({
             <Filter className="w-5 h-5" />
             <span>Filters</span>
           </button>
+          <div className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-lg">
+            <label htmlFor="sortOption" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Sort by
+            </label>
+            <select
+              id="sortOption"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as 'default' | 'best')}
+              className="text-sm text-gray-700 bg-transparent focus:outline-none"
+            >
+              <option value="default">Default</option>
+              <option value="best">Best Match</option>
+            </select>
+          </div>
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
