@@ -39,6 +39,7 @@ export function StudentDashboard({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortOption, setSortOption] = useState<'default' | 'best'>('default');
 
   // Get unique project types and skills for filters
   const projectTypes = ['All', ...Array.from(new Set(projects.map(p => p.projectType)))];
