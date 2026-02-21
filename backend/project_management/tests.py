@@ -1,3 +1,4 @@
+from django.http import request
 from datetime import timezone
 
 from django.core import mail
@@ -5,6 +6,9 @@ from django.test import TestCase
 from django.urls import reverse
 import json
 from .models import Project, Join_Request
+
+from project_management.views import get_project
+from .models import Project
 from django.contrib.auth.models import User
 
 
@@ -55,6 +59,7 @@ class ProjectTests(TestCase):
 
         _ = self.client.login(username="testuser", password="TestPswd123!")
 
+
         for (title, short_description, extended_description, preferred_skills) in testcases:
             json_data = {
                 "title": title,
@@ -77,9 +82,14 @@ class ProjectTests(TestCase):
             self.assertNotEqual(response.status_code // 100, 4)
 
         for (id, (title, _, _, _)) in enumerate(testcases, start=1):
-            project = Project.objects.get(id=id)
-
-            self.assertEqual(project.title, title)
+            response = self.client.post(
+                path=reverse("get_project"),
+                data=json.dumps({
+                    "id": id
+                }),
+                content_type="application/json"
+            )
+            self.assertEqual(response.json().get("project", {}).get("title", ""), title)
 
     def test_join_project(self):
         testcases = [
@@ -140,13 +150,13 @@ class ProjectTests(TestCase):
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"project_id": 1}),
+            data=json.dumps({"id": 1}),
             content_type="application/json"
         )
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"project_id": 2}),
+            data=json.dumps({"id": 2}),
             content_type="application/json"
         )
 
@@ -154,7 +164,7 @@ class ProjectTests(TestCase):
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"project_id": 2}),
+            data=json.dumps({"id": 2}),
             content_type="application/json"
         )
 
