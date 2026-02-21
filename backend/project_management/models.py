@@ -1,4 +1,6 @@
 from typing import override
+
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -19,3 +21,12 @@ class Project(models.Model):
     @override
     def __str__(self) -> str:
         return f"{self.title} - {self.author}"
+
+class Join_Request(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="join_request")
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20,
+                              choices=[("pending", "pending"), ("approved", "approved"), ("rejected", "rejected")],
+                              default="pending")
