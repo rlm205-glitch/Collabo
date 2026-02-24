@@ -42,6 +42,8 @@ export interface Project {
   contactMethod: string;
   contactInfo: string;
   createdAt: Date;
+  creationTime?: string;
+  updatedTime?: string;
   isActive: boolean;
   reportCount?: number;
 }
@@ -82,7 +84,7 @@ function App() {
             preferredSkills: p.preferred_skills || [],
             isActive: true,
             fullDescription: '',
-            timeCommitment: '',
+            timeCommitment: p.workload_per_week || '',
             contactMethod: '',
             contactInfo: '',
             createdAt: new Date(),
@@ -119,7 +121,9 @@ function App() {
           contactMethod: p.preferred_contact_method || '',
           contactInfo: p.contact_information || '',
           isActive: true,
-          createdAt: new Date(),
+          createdAt: p.creation_time ? new Date(p.creation_time) : new Date(),
+          creationTime: p.creation_time || '',
+          updatedTime: p.updated_time || '',
         };
       }
     } catch (e) {
@@ -241,9 +245,24 @@ function App() {
     setProjects(projects.map(p => p.id === projectId ? { ...p, ...updates } : p));
   };
 
-  const deleteProject = (projectId: string) => {
-    setProjects(projects.filter(p => p.id !== projectId));
-    setReports(reports.filter(r => r.projectId !== projectId));
+  const deleteProject = async (projectId: string) => {
+    try {
+      const res = await fetch('/project_management/delete_project/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(projectId) }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProjects(projects.filter(p => p.id !== projectId));
+        setReports(reports.filter(r => r.projectId !== projectId));
+      } else {
+        alert(data.error || 'Failed to delete project.');
+      }
+    } catch (e) {
+      console.error('Failed to delete project:', e);
+      alert('Failed to delete project.');
+    }
   };
 
   const reportProject = (projectId: string, reason: string) => {

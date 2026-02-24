@@ -77,6 +77,14 @@ class ProjectTests(TestCase):
 
             self.assertNotEqual(response.status_code // 100, 4)
 
+        deletion_response = self.client.post(
+            path=reverse("delete_project"),
+            data=json.dumps({
+                "id": 2,
+            }),
+            content_type="application/json"
+        )
+
         for (id, (title, _, _, _)) in enumerate(testcases, start=1):
             response = self.client.post(
                 path=reverse("get_project"),
@@ -85,7 +93,12 @@ class ProjectTests(TestCase):
                 }),
                 content_type="application/json"
             )
-            self.assertEqual(response.json().get("project", {}).get("title", ""), title)
+
+            if not id == 2:
+                self.assertEqual(response.json().get("project", {}).get("title", ""), title)
+            else:
+                self.assertEqual(response.json().get("success"), False)
+
 
     def test_join_project(self):
         testcases = [
@@ -169,9 +182,3 @@ class ProjectTests(TestCase):
 
         self.assertEqual(len(project1.members.all()), 2)
         self.assertEqual(len(project2.members.all()), 3)
-
-
-
-
-
-

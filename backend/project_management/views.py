@@ -92,7 +92,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 for filter_item in filters:
                     if isinstance(filter_item, dict):
                         projects = projects.filter(**filter_item)
-        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "preferred_skills"))
+        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "workload_per_week", "preferred_skills"))
 
         return JsonResponse({ "success": True,
             "condensed_projects": condensed_project_data,
