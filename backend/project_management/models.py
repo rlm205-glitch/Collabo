@@ -14,6 +14,9 @@ class Project(models.Model):
     preferred_contact_method = models.TextField(max_length=50, help_text='Preferred Contact Method', default="")
     contact_information = models.TextField(max_length=100, help_text='Contact Information', default="")
 
+    creation_time = models.DateTimeField(auto_now_add=True)
+    updated_time = models.DateTimeField(auto_now=True)
+
     members = models.ManyToManyField(User, "projects", blank=True)
 
     @override

@@ -36,6 +36,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
             author=request.user.get_username(),
             extended_description=json_body.get("extended_description", ""),
 
+            preferred_skills=json_body.get("preferred_skills", []),
             project_type=json_body.get("project_type"),
             workload_per_week=json_body.get("workload_per_week"),
             preferred_contact_method=json_body.get("preferred_contact_method"),
@@ -43,9 +44,6 @@ def create_project(request: HttpRequest) -> HttpResponse:
         )
 
         project.members.add(request.user) # type: ignore_errors
-        
-        for skill in json_body.get("preferred_skills", []):
-            project.preferred_skills.append(skill)
 
     except IntegrityError:
         return HttpResponseBadRequest(b"This project has been created already")
@@ -131,6 +129,8 @@ def get_project(request: HttpRequest) -> HttpResponse:
             "workload_per_week": project.workload_per_week,
             "preferred_contact_method": project.preferred_contact_method,
             "contact_information": project.contact_information,
+            "creation_time": project.creation_time,
+            "updated_time": project.updated_time,
             "members": [user.id for user in project.members.all()]
         }
 
