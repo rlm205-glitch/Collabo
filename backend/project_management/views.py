@@ -36,6 +36,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
             author=request.user.get_username(),
             extended_description=json_body.get("extended_description", ""),
 
+            preferred_skills=json_body.get("preferred_skills", []),
             project_type=json_body.get("project_type"),
             workload_per_week=json_body.get("workload_per_week"),
             preferred_contact_method=json_body.get("preferred_contact_method"),
@@ -43,9 +44,6 @@ def create_project(request: HttpRequest) -> HttpResponse:
         )
 
         project.members.add(request.user) # type: ignore_errors
-        
-        for skill in json_body.get("preferred_skills", []):
-            project.preferred_skills.append(skill)
 
     except IntegrityError:
         return HttpResponseBadRequest(b"This project has been created already")
@@ -94,7 +92,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 for filter_item in filters:
                     if isinstance(filter_item, dict):
                         projects = projects.filter(**filter_item)
-        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "preferred_skills"))
+        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "workload_per_week", "preferred_skills"))
 
         return JsonResponse({ "success": True,
             "condensed_projects": condensed_project_data,
@@ -131,6 +129,8 @@ def get_project(request: HttpRequest) -> HttpResponse:
             "workload_per_week": project.workload_per_week,
             "preferred_contact_method": project.preferred_contact_method,
             "contact_information": project.contact_information,
+            "creation_time": project.creation_time,
+            "updated_time": project.updated_time,
             "members": [user.id for user in project.members.all()]
         }
 
@@ -138,5 +138,26 @@ def get_project(request: HttpRequest) -> HttpResponse:
     except Exception:
         return JsonResponse({"success": False, "error": "Failed to get project"})
 
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def delete_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    try:
+        project = Project.objects.get(
+            id=json_body.get("id", "")
+        )
+
+        if project.author == request.user.get_username():
+            project.delete()
+        else:
+            return JsonResponse({"success": False, "error": "Cannot delete a project that you did not create"})
+
+        return JsonResponse({"success": True})
+    except Exception:
+        return JsonResponse({"success": False, "error": "Failed to delete project"})
 
 

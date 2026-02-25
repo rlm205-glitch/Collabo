@@ -82,6 +82,8 @@
     "workload_per_week": workload_per_week,
     "preferred_contact_method": preferred_contact_method,
     "contact_information": contact_information,
+    "creation_time": creation_time,
+    "updated_time": last_updated_time,
     "members": [member user ids]
   }
 }
@@ -114,8 +116,29 @@
     "author": author,
     "preferred_skills": preferred_skills,
     "project_type": project_type,
+    "workload_per_week": workload_per_week,
   },
   project_count: {*size of projects object*}
+}
+```
+
+### Delete Project: Via HTTP POST with JSON data
+
+- URL: {backend ip}/project_management/delete_project
+- Requires Login (Handled automatically by Django)
+- JSON Request Data:
+
+```
+{
+  "id": {id}
+}
+```
+
+- Returns JSONResponse:
+
+```
+{
+  success: {boolean}
 }
 ```
 
@@ -127,21 +150,25 @@
 - JSON Request Data:
 
 ```
+
 {
   "email": {email},
   "password": {password},
   "first_name": {first_name},
   "last_name": {last_name}
 }
+
 ```
 
 - Returns JSONResponse:
 
 ```
+
 {
   "success": {bool},
   "redirect_url": {redirect_url}
 }
+
 ```
 
 ### Login User: Via HTTP POST with JSON data
@@ -150,17 +177,21 @@
 - JSON Request Data:
 
 ```
+
 {
   "email": {email},
   "password": {password},
 }
+
 ```
 
 - Returns JSONResponse:
 
 ```
+
 {
   "success": {bool},
   "redirect_url": {redirect_url}
 }
+
 ```

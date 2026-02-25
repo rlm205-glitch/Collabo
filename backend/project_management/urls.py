@@ -6,4 +6,5 @@ urlpatterns = [
     path("join_project/", views.join_project, name="join_project"),
     path("list_projects/", views.list_projects, name="list_projects"),
     path("get_project/", views.get_project, name="get_project"),
+    path("delete_project/", views.delete_project, name="delete_project"),
 ]
