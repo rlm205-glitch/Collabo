@@ -39,6 +39,7 @@ export function StudentDashboard({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortOption, setSortOption] = useState<'default' | 'best'>('default');
 
   // Get unique project types and skills for filters
   const projectTypes = ['All', ...Array.from(new Set(projects.map(p => p.projectType)))];
@@ -48,17 +49,42 @@ export function StudentDashboard({
   // Filter projects
   const filteredProjects = projects.filter(project => {
     if (!project.isActive) return false;
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = selectedProjectType === 'All' || project.projectType === selectedProjectType;
     const matchesSkill = selectedSkill === 'All' || project.preferredSkills.includes(selectedSkill);
     const matchesCommitment = selectedCommitment === 'All' || project.timeCommitment === selectedCommitment;
 
     return matchesSearch && matchesType && matchesSkill && matchesCommitment;
   });
+
+  // --- Best Match scoring + sorting ---
+  const normalize = (s: string) => s.toLowerCase().trim();
+
+  const mySkills = (currentUser.skills ?? []).map(normalize);
+  const myInterests = (currentUser.interests ?? []).map(normalize);
+
+  const scoreProject = (project: Project) => {
+    let score = 0;
+
+    // +1 if any preferred skill matches my skills
+    const projectSkills = (project.preferredSkills ?? []).map(normalize);
+    if (projectSkills.some(s => mySkills.includes(s))) score += 1;
+
+    // +1 if any of my interests appears in title/description
+    const text = normalize(project.title + ' ' + project.description);
+    if (myInterests.some(i => i && text.includes(i))) score += 1;
+
+    return score;
+  };
+
+  const displayedProjects =
+    sortOption === 'best'
+      ? [...filteredProjects].sort((a, b) => scoreProject(b) - scoreProject(a))
+      : filteredProjects;
 
   const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);
 
@@ -132,6 +158,20 @@ export function StudentDashboard({
             <Filter className="w-5 h-5" />
             <span>Filters</span>
           </button>
+          <div className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-lg">
+            <label htmlFor="sortOption" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Sort by
+            </label>
+            <select
+              id="sortOption"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as 'default' | 'best')}
+              className="text-sm text-gray-700 bg-transparent focus:outline-none"
+            >
+              <option value="default">Default</option>
+              <option value="best">Best Match</option>
+            </select>
+          </div>
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -189,15 +229,15 @@ export function StudentDashboard({
         {/* Projects Grid */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Available Projects ({filteredProjects.length})
+            Available Projects ({displayedProjects.length})
           </h2>
-          {filteredProjects.length === 0 ? (
+          {displayedProjects.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <p className="text-gray-500">No projects found matching your filters.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map(project => (
+              {displayedProjects.map(project => (
                 <ProjectCard
                   key={project.id}
                   project={project}
