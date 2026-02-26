@@ -63,7 +63,7 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
 
             <p className="text-base leading-relaxed text-slate-700">
               CWRU Collaboration helps Case Western students find partners for research,
-              startups, class projects, and passion ideas - based on skills, interests,
+              startups, and passion ideas - based on skills, interests,
               and availability.
             </p>
 
