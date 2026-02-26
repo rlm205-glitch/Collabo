@@ -140,7 +140,7 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
         {/* Footer */}
         <footer className="mt-14 border-t border-blue-100 pt-6 text-xs text-slate-600">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>© {new Date().getFullYear()} CWRU Collaboration</div>
+            <div>© {new Date().getFullYear()} CWRU Collaboration Team</div>
             <div className="flex gap-4">
               <span>Moderated for safety</span>
               <span>Students-only access</span>
