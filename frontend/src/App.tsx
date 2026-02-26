@@ -269,7 +269,7 @@ function App() {
     if (!currentUser) return;
 
 
-    
+
     const newReport: Report = {
       id: Date.now().toString(),
       projectId,
@@ -291,7 +291,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
-        <Route path="*" element={<HomePage onGetStarted={() => navigate('/login')} />} />
+        <Route
+          path="*"
+          element={
+            <HomePage
+              onGetStarted={() => navigate('/create-account')}
+              onLogin={() => navigate('/login')}
+            />
+          }
+        />
       </Routes>
     );
   }
