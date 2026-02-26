@@ -63,7 +63,7 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
 
             <p className="text-base leading-relaxed text-slate-700">
               CWRU Collaboration helps Case Western students find partners for research,
-              startups, class projects, and passion ideas — based on skills, interests,
+              startups, class projects, and passion ideas - based on skills, interests,
               and availability.
             </p>
 
@@ -105,7 +105,7 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
                 <div>
                   <div className="font-semibold text-slate-900">Create a profile</div>
                   <div className="text-slate-600">
-                    Add your major, skills, interests, availability, and preferred contact.
+                    List your skills, interests, and availability.
                   </div>
                 </div>
               </li>
@@ -114,9 +114,9 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
                   2
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-900">Post or join projects</div>
+                  <div className="font-semibold text-slate-900">Find a project and request to join</div>
                   <div className="text-slate-600">
-                    Share what you’re building and who you’re looking for — or browse active posts.
+                    Search and filter, then submit a join request.
                   </div>
                 </div>
               </li>
@@ -125,9 +125,9 @@ export function HomePage({ onGetStarted, onLogin }: HomePageProps) {
                   3
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-900">Connect fast</div>
+                  <div className="font-semibold text-slate-900">Hear back and collaborate via email</div>
                   <div className="text-slate-600">
-                    Reach out using the owner’s preferred method (email, etc.). Keep it lightweight.
+                    Project owners accept or reject requests, and you’ll be notified. If accepted, you’ll coordinate through email.
                   </div>
                 </div>
               </li>
