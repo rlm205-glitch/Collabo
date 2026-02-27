@@ -1,4 +1,4 @@
-from .models import CollaboUser
+from .models import CollaboUser, EmailVerificationToken
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -6,8 +6,14 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonR
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, authenticate, get_user_model
 from django.core.validators import validate_email
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.conf import settings
+from datetime import timedelta
 from . import utilities
 import json
+import hashlib
+import secrets
 
 POST_LOGIN_PAGE_URL: str = "http://localhost:5173"
 
@@ -29,7 +35,29 @@ def register_user(request: HttpRequest) -> HttpResponse:
     try:
         validate_password(password)
         validate_email(email)
-        _ = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
+        user = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
+
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+
+        raw_token = secrets.token_urlsafe(16)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+
+        EmailVerificationToken.objects.create(
+            user=user,
+            token_hash=token_hash,
+            expires_at=timezone.now() + timedelta(hours=24),
+        )
+
+        verify_link = f"{settings.FRONTEND_URL}/verify-email?token={raw_token}"
+
+        send_mail(
+            subject="Verify your Collabo account",
+            message=f"Click this link to verify your email:\n\n{verify_link}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+        )
+
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
@@ -50,15 +78,23 @@ def login_user(request: HttpRequest) -> HttpResponse:
     password: str = json_body.get("password") or ""
 
     try:
-        username = CollaboUser.objects.get(
-            email=email
-        ).username
+        username = CollaboUser.objects.get(email=email).username
     except Exception:
-        return JsonResponse({"success": False, "error": "Invalid Logic Credentials"}, status=400)
+        return JsonResponse({"success": False, "error": "Invalid Login Credentials"}, status=400)
+
+    try:
+        u = CollaboUser.objects.get(username=username)
+        if not u.is_active:
+            return JsonResponse(
+                {"success": False, "error": "Please verify your email before logging in."},
+                status=403,
+            )
+    except CollaboUser.DoesNotExist:
+        pass
 
     if (user := authenticate(request, username=username, password=password)) is not None:
         login(request, user)
-        
+
         return JsonResponse({
             "success": True,
             "redirect_url": POST_LOGIN_PAGE_URL,
@@ -81,3 +117,36 @@ def login_user(request: HttpRequest) -> HttpResponse:
     return JsonResponse(
         {"success": False, "error": "Invalid Login Credentials"}, status=400
     )
+
+
+@csrf_exempt
+def verify_email(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body = dict(json.loads(request.body))
+    token = (json_body.get("token") or "").strip()
+    if not token:
+        return JsonResponse({"success": False, "error": "Token required"}, status=400)
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+    try:
+        rec = EmailVerificationToken.objects.select_related("user").get(token_hash=token_hash)
+    except EmailVerificationToken.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Invalid token"}, status=400)
+
+    if rec.used_at is not None:
+        return JsonResponse({"success": False, "error": "Token already used"}, status=400)
+
+    if timezone.now() >= rec.expires_at:
+        return JsonResponse({"success": False, "error": "Token expired"}, status=400)
+
+    user = rec.user
+    user.is_active = True
+    user.save(update_fields=["is_active"])
+
+    rec.used_at = timezone.now()
+    rec.save(update_fields=["used_at"])
+
+    return JsonResponse({"success": True})

@@ -9,6 +9,7 @@ import { ProjectViewPage } from './components/ProjectViewPage';
 import { JoinRequestPage } from './components/JoinRequestPage';
 import { JoinRequestsPage } from './components/JoinRequestsPage';
 import { UserProfilePage } from './components/UserProfilePage';
+import VerifyEmail from './components/VerifyEmail';
 
 
 export type UserRole = 'student' | 'admin';
@@ -199,7 +200,6 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-
     navigate('/login');
     return null;
   };
@@ -397,6 +397,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="*"
           element={
