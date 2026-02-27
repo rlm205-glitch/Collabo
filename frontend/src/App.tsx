@@ -5,6 +5,7 @@ import { CreateAccountPage } from './components/CreateAccountPage';
 import { StudentDashboard } from './components/StudentDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { HomePage } from "./components/HomePage";
+import VerifyEmail from './components/VerifyEmail';
 
 
 export type UserRole = 'student' | 'admin';
@@ -193,16 +194,7 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-
-    const name = `${firstName} ${lastName}`;
-    setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'student',
-      createdAt: new Date(),
-    });
-    navigate('/');
+    navigate('/login');
     return null;
   };
 
@@ -291,6 +283,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="*"
           element={
