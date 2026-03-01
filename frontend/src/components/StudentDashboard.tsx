@@ -62,27 +62,47 @@ export function StudentDashboard({
   });
 
   // --- Best Match scoring + sorting ---
-  const normalize = (s: string) => s.toLowerCase().trim();
+  const normalize = (v: unknown): string =>
+    typeof v === 'string' ? v.toLowerCase().trim() : '';
 
-  const mySkills = (currentUser.skills ?? []).map(normalize);
-  const myInterests = (currentUser.interests ?? []).map(normalize);
+  const toNormalizedList = (v: unknown): string[] => {
+    // Handles: ["Python", ...], "Python, SQL", null/undefined, weird values
+    if (Array.isArray(v)) return v.map(normalize).filter(Boolean);
+    if (typeof v === 'string') {
+      return v
+        .split(',')              // "Python, SQL" -> ["Python", " SQL"]
+        .map(normalize)
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const mySkills = toNormalizedList(currentUser.skills);
+  const myInterests = toNormalizedList(currentUser.interests);
+
+  console.log('DEBUG user match inputs', {
+    rawSkills: currentUser.skills,
+    rawInterests: currentUser.interests,
+    mySkills,
+    myInterests,
+  });
 
   const scoreProject = (project: Project) => {
-  let score = 0;
+    const projectSkills = toNormalizedList(project.preferredSkills);
 
-  const projectSkills = (project.preferredSkills ?? []).map(normalize);
+    // Count how many skills match (weighted)
+    const skillMatches = projectSkills.filter(s => mySkills.includes(s)).length;
 
-  // count how many skills match
-  const skillMatches = projectSkills.filter(s => mySkills.includes(s)).length;
-  score += skillMatches * 3;
+    // Count how many interests match the project text (weighted)
+    const text = normalize(`${project.title ?? ''} ${project.description ?? ''}`);
+    const interestMatches = myInterests.filter(i => text.includes(i)).length;
 
-  // count how many interests appear in the project text
-  const text = normalize(project.title + ' ' + project.description);
-  const interestMatches = myInterests.filter(i => i && text.includes(i)).length;
-  score += interestMatches * 2;
+    const score = skillMatches * 3 + interestMatches * 2;
 
-  return score;
-};
+    console.log('SCORE', { title: project.title, skillMatches, interestMatches, score });
+
+    return score;
+  };
 
   const displayedProjects =
     sortOption === 'best'
