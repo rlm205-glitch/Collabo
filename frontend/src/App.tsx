@@ -208,12 +208,24 @@ function App() {
     }
 
     const name = `${firstName} ${lastName}`;
-    setCurrentUser({
+    const newUser: User = {
       id: Date.now().toString(),
       email,
       name,
       role: 'student',
       createdAt: new Date(),
+      skills: [],       // ✅ ensure not undefined
+      interests: [],    // ✅ ensure not undefined
+    };
+
+    setCurrentUser(newUser);
+
+    // ✅ add to users (or replace if email somehow already exists)
+    setUsers(prev => {
+      const exists = prev.some(u => u.email === email);
+      return exists
+        ? prev.map(u => (u.email === email ? newUser : u))
+        : [...prev, newUser];
     });
     navigate('/');
     return null;
