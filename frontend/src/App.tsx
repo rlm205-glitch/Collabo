@@ -212,8 +212,14 @@ function App() {
   };
 
   const updateUserProfile = (updatedUser: User) => {
-    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
     setCurrentUser(updatedUser);
+
+    setUsers(prev => {
+      const exists = prev.some(u => u.id === updatedUser.id);
+      return exists
+        ? prev.map(u => (u.id === updatedUser.id ? updatedUser : u))
+        : [...prev, updatedUser];
+    });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
