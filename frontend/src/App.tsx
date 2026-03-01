@@ -165,6 +165,7 @@ function App() {
       return data?.error || 'Invalid login credentials';
     }
 
+
     const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
     setCurrentUser({
       id: Date.now().toString(),
@@ -172,7 +173,19 @@ function App() {
       name,
       role: 'student',
       createdAt: new Date(),
+      skills: [],       // ✅ initialize so it’s not undefined
+      interests: [],    // ✅ initialize so it’s not undefined
     });
+    setUsers(prev => {
+      const existing = prev.find(u => u.email === email);
+      const merged = existing ? { ...newUser, ...existing, id: existing.id } : newUser;
+
+      setCurrentUser(merged); // keep currentUser in sync with users
+      return existing
+        ? prev.map(u => (u.email === email ? merged : u))
+        : [...prev, merged];
+    });
+
     navigate('/');
     return null;
   };
