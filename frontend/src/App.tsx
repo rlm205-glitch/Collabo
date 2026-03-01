@@ -180,15 +180,14 @@ function App() {
       interests: [],
     };
 
-    // Keep any previously saved profile fields for this email
     setUsers(prev => {
       const existing = prev.find(u => u.email === email);
+
       const merged: User = existing
         ? {
           ...newUser,
           ...existing,
-          // preserve identity + keep arrays if they already exist
-          id: existing.id,
+          id: existing.id, // keep stable id for that user
           skills: existing.skills ?? newUser.skills,
           interests: existing.interests ?? newUser.interests,
         }
