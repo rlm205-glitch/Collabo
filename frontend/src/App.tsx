@@ -165,22 +165,36 @@ function App() {
       return data?.error || 'Invalid login credentials';
     }
 
+    const name = email
+      .split('@')[0]
+      .replace('.', ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
 
-    const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
-    setCurrentUser({
+    const newUser: User = {
       id: Date.now().toString(),
       email,
       name,
       role: 'student',
       createdAt: new Date(),
-      skills: [],       // ✅ initialize so it’s not undefined
-      interests: [],    // ✅ initialize so it’s not undefined
-    });
+      skills: [],
+      interests: [],
+    };
+
+    // Keep any previously saved profile fields for this email
     setUsers(prev => {
       const existing = prev.find(u => u.email === email);
-      const merged = existing ? { ...newUser, ...existing, id: existing.id } : newUser;
+      const merged: User = existing
+        ? {
+          ...newUser,
+          ...existing,
+          // preserve identity + keep arrays if they already exist
+          id: existing.id,
+          skills: existing.skills ?? newUser.skills,
+          interests: existing.interests ?? newUser.interests,
+        }
+        : newUser;
 
-      setCurrentUser(merged); // keep currentUser in sync with users
+      setCurrentUser(merged);
       return existing
         ? prev.map(u => (u.email === email ? merged : u))
         : [...prev, merged];
