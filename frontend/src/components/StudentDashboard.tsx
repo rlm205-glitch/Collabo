@@ -68,18 +68,21 @@ export function StudentDashboard({
   const myInterests = (currentUser.interests ?? []).map(normalize);
 
   const scoreProject = (project: Project) => {
-    let score = 0;
+  let score = 0;
 
-    // +1 if any preferred skill matches my skills
-    const projectSkills = (project.preferredSkills ?? []).map(normalize);
-    if (projectSkills.some(s => mySkills.includes(s))) score += 1;
+  const projectSkills = (project.preferredSkills ?? []).map(normalize);
 
-    // +1 if any of my interests appears in title/description
-    const text = normalize(project.title + ' ' + project.description);
-    if (myInterests.some(i => i && text.includes(i))) score += 1;
+  // count how many skills match
+  const skillMatches = projectSkills.filter(s => mySkills.includes(s)).length;
+  score += skillMatches * 3;
 
-    return score;
-  };
+  // count how many interests appear in the project text
+  const text = normalize(project.title + ' ' + project.description);
+  const interestMatches = myInterests.filter(i => i && text.includes(i)).length;
+  score += interestMatches * 2;
+
+  return score;
+};
 
   const displayedProjects =
     sortOption === 'best'
