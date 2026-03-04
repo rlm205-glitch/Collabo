@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils import timezone
@@ -19,6 +20,11 @@ class CollaboUser(AbstractUser):
         return self.email
 
 
+=======
+from django.conf import settings
+from django.utils import timezone
+
+>>>>>>> 352e71e (Add backend email verification)
 class EmailVerificationToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64, unique=True)  # sha256 hex
