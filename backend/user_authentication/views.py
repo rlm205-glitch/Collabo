@@ -148,6 +148,7 @@ def logout_user(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"success": True})
 
 
+
 @csrf_exempt
 def verify_email(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":

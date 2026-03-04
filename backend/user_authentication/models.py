@@ -19,6 +19,7 @@ class CollaboUser(AbstractUser):
         return self.email
 
 
+
 class EmailVerificationToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64, unique=True)  # sha256 hex
