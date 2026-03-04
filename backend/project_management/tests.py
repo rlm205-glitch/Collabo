@@ -4,7 +4,7 @@ from django.urls import reverse
 import json
 
 from project_management.views import get_project
-from .models import Project
+from .models import Project, Report
 from django.contrib.auth.models import User
 
 
@@ -182,3 +182,317 @@ class ProjectTests(TestCase):
 
         self.assertEqual(len(project1.members.all()), 2)
         self.assertEqual(len(project2.members.all()), 3)
+
+
+class ReportTests(TestCase):
+    def test_report_project(self):
+        creator = User.objects.create_user(
+            username="creator@case.edu",
+            password="TestPswd123!"
+        )
+
+        reporter = User.objects.create_user(
+            username="reporter@case.edu",
+            password="TestPswd123!"
+        )
+
+        second_reporter = User.objects.create_user(
+            username="reporter2@case.edu",
+            password="TestPswd123!"
+        )
+
+        # Create two projects as creator
+        _ = self.client.login(username="creator@case.edu", password="TestPswd123!")
+
+        testcases = [
+            ("Spam Project", "This project is spam"),
+            ("Good Project", "A legitimate project"),
+        ]
+
+        for (title, short_description) in testcases:
+            response = self.client.post(
+                path=reverse("create_project"),
+                data=json.dumps({
+                    "title": title,
+                    "short_description": short_description,
+                    "extended_description": "Extended",
+                    "preferred_skills": ["Python"],
+                    "project_type": "Research",
+                    "workload_per_week": "5-10 hours",
+                    "preferred_contact_method": "email",
+                    "contact_information": "creator@case.edu",
+                }),
+                content_type="application/json"
+            )
+            self.assertNotEqual(response.status_code // 100, 4)
+
+        project1_id = 1
+        project2_id = 2
+
+        # Report with valid reason as reporter
+        _ = self.client.login(username="reporter@case.edu", password="TestPswd123!")
+
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project1_id,
+                "reason": "spam",
+                "description": "This looks like spam",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+        self.assertIn("report_id", response.json())
+
+        # Duplicate report on same project should fail
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project1_id,
+                "reason": "harassment",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "You have already reported this project")
+
+        # Same reporter can report a different project
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project2_id,
+                "reason": "misleading",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+
+        # Different reporter can report the same project
+        _ = self.client.login(username="reporter2@case.edu", password="TestPswd123!")
+
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project1_id,
+                "reason": "inappropriate",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+
+        # Invalid reason should fail
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project2_id,
+                "reason": "invalid_reason",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+
+        # Nonexistent project should fail
+        response = self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": 99999,
+                "reason": "spam",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404)
+
+        # Verify total reports created
+        self.assertEqual(Report.objects.count(), 3)
+
+    def test_list_reports(self):
+        creator = User.objects.create_user(
+            username="creator@case.edu",
+            password="TestPswd123!"
+        )
+
+        reporter = User.objects.create_user(
+            username="reporter@case.edu",
+            password="TestPswd123!"
+        )
+
+        admin = User.objects.create_user(
+            username="admin@case.edu",
+            password="AdminPswd123!",
+            is_staff=True
+        )
+
+        # Create two projects
+        _ = self.client.login(username="creator@case.edu", password="TestPswd123!")
+
+        testcases = [
+            ("Project Alpha", "First project"),
+            ("Project Beta", "Second project"),
+        ]
+
+        project_ids = []
+        for (title, short_description) in testcases:
+            response = self.client.post(
+                path=reverse("create_project"),
+                data=json.dumps({
+                    "title": title,
+                    "short_description": short_description,
+                    "extended_description": "Extended",
+                    "preferred_skills": ["Python"],
+                    "project_type": "Research",
+                    "workload_per_week": "5-10 hours",
+                    "preferred_contact_method": "email",
+                    "contact_information": "creator@case.edu",
+                }),
+                content_type="application/json"
+            )
+            project_ids.append(response.json()["id"])
+
+        # File reports on both projects
+        _ = self.client.login(username="reporter@case.edu", password="TestPswd123!")
+
+        for (project_id, reason) in [(project_ids[0], "spam"), (project_ids[1], "harassment")]:
+            self.client.post(
+                path=reverse("report_project"),
+                data=json.dumps({
+                    "project_id": project_id,
+                    "reason": reason,
+                    "description": f"Reporting for {reason}",
+                }),
+                content_type="application/json"
+            )
+
+        # Non-staff user should get 403
+        response = self.client.post(
+            path=reverse("list_reports"),
+            data=json.dumps({}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403)
+
+        # Staff user should see all reports
+        _ = self.client.login(username="admin@case.edu", password="AdminPswd123!")
+
+        response = self.client.post(
+            path=reverse("list_reports"),
+            data=json.dumps({}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["report_count"], 2)
+
+        # Filter by project_id should narrow results
+        response = self.client.post(
+            path=reverse("list_reports"),
+            data=json.dumps({"project_id": project_ids[0]}),
+            content_type="application/json"
+        )
+        data = response.json()
+        self.assertEqual(data["report_count"], 1)
+        self.assertEqual(data["reports"][0]["reason"], "spam")
+        self.assertEqual(data["reports"][0]["project_title"], "Project Alpha")
+
+        # Filter with nonexistent project should return empty
+        response = self.client.post(
+            path=reverse("list_reports"),
+            data=json.dumps({"project_id": 99999}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.json()["report_count"], 0)
+
+    def test_admin_delete_project(self):
+        creator = User.objects.create_user(
+            username="creator@case.edu",
+            password="TestPswd123!"
+        )
+
+        regular_user = User.objects.create_user(
+            username="regular@case.edu",
+            password="TestPswd123!"
+        )
+
+        admin = User.objects.create_user(
+            username="admin@case.edu",
+            password="AdminPswd123!",
+            is_staff=True
+        )
+
+        # Create two projects
+        _ = self.client.login(username="creator@case.edu", password="TestPswd123!")
+
+        testcases = [
+            ("Reported Project", "Will be deleted by admin"),
+            ("Safe Project", "Will survive"),
+        ]
+
+        project_ids = []
+        for (title, short_description) in testcases:
+            response = self.client.post(
+                path=reverse("create_project"),
+                data=json.dumps({
+                    "title": title,
+                    "short_description": short_description,
+                    "extended_description": "Extended",
+                    "preferred_skills": ["Python"],
+                    "project_type": "Research",
+                    "workload_per_week": "5-10 hours",
+                    "preferred_contact_method": "email",
+                    "contact_information": "creator@case.edu",
+                }),
+                content_type="application/json"
+            )
+            project_ids.append(response.json()["id"])
+
+        # File a report on the first project
+        _ = self.client.login(username="regular@case.edu", password="TestPswd123!")
+
+        self.client.post(
+            path=reverse("report_project"),
+            data=json.dumps({
+                "project_id": project_ids[0],
+                "reason": "spam",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(Report.objects.count(), 1)
+
+        # Non-staff user should get 403
+        response = self.client.post(
+            path=reverse("admin_delete_project"),
+            data=json.dumps({"id": project_ids[0]}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Project.objects.filter(id=project_ids[0]).exists())
+
+        # Staff user can delete any project (not just their own)
+        _ = self.client.login(username="admin@case.edu", password="AdminPswd123!")
+
+        response = self.client.post(
+            path=reverse("admin_delete_project"),
+            data=json.dumps({"id": project_ids[0]}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+        self.assertFalse(Project.objects.filter(id=project_ids[0]).exists())
+
+        # Reports should be cascade-deleted with the project
+        self.assertEqual(Report.objects.count(), 0)
+
+        # Second project should still exist
+        self.assertTrue(Project.objects.filter(id=project_ids[1]).exists())
+
+        # Deleting nonexistent project should return 404
+        response = self.client.post(
+            path=reverse("admin_delete_project"),
+            data=json.dumps({"id": 99999}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404)

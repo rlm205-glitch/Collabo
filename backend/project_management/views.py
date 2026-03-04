@@ -12,7 +12,8 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
-from .models import Project
+from .models import Project, Report
+from .decorators import staff_required
 
 LOGIN_PAGE_URL: str = "http://localhost:5173/login"
 HOME_PAGE_URL: str = "http://localhost:5173/home"
@@ -161,3 +162,88 @@ def delete_project(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"success": False, "error": "Failed to delete project"})
 
 
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def report_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    project_id = json_body.get("project_id")
+    reason = json_body.get("reason", "")
+    description = json_body.get("description", "")
+
+    valid_reasons = [choice[0] for choice in Report.REASON_CHOICES]
+    if reason not in valid_reasons:
+        return JsonResponse({"success": False, "error": "Invalid reason category"}, status=400)
+
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Project not found"}, status=404)
+
+    if Report.objects.filter(project=project, reporter=request.user).exists():
+        return JsonResponse({"success": False, "error": "You have already reported this project"}, status=400)
+
+    report = Report.objects.create(
+        project=project,
+        reporter=request.user,
+        reason=reason,
+        description=description,
+    )
+
+    return JsonResponse({"success": True, "report_id": report.id})
+
+
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+@staff_required
+def list_reports(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    project_id = json_body.get("project_id")
+
+    reports = Report.objects.select_related("project", "reporter").order_by("-created_at")
+
+    if project_id:
+        reports = reports.filter(project_id=project_id)
+
+    reports_data = [
+        {
+            "id": report.id,
+            "project_id": report.project.id,
+            "project_title": report.project.title,
+            "reporter_username": report.reporter.username,
+            "reason": report.reason,
+            "description": report.description,
+            "created_at": report.created_at.isoformat(),
+        }
+        for report in reports
+    ]
+
+    return JsonResponse({
+        "success": True,
+        "reports": reports_data,
+        "report_count": len(reports_data),
+    })
+
+
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+@staff_required
+def admin_delete_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    try:
+        project = Project.objects.get(id=json_body.get("id", ""))
+        project.delete()
+        return JsonResponse({"success": True})
+    except Project.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Project not found"}, status=404)
