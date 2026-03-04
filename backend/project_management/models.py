@@ -6,6 +6,7 @@ class Project(models.Model):
     title = models.TextField(max_length=30, help_text='Project Title')
     short_description = models.TextField(max_length=500, help_text='Short Project Description', default="")
     author = models.TextField(max_length=70, help_text='Project Creator')
+    author_id = models.IntegerField()
     extended_description = models.TextField(max_length=10000, help_text='Project Description', default="")
     
     preferred_skills = models.JSONField(default=list)
