@@ -1,10 +1,10 @@
+from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import get_user_model, login, authenticate
 from . import utilities
 import json
 
@@ -27,7 +27,7 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
     try:
         validate_password(password)
-        _ = User.objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
+        _ = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
