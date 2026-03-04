@@ -1,6 +1,6 @@
 from typing import override
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 class Project(models.Model):
     title = models.TextField(max_length=30, help_text='Project Title')
@@ -18,7 +18,7 @@ class Project(models.Model):
     creation_time = models.DateTimeField(auto_now_add=True)
     updated_time = models.DateTimeField(auto_now=True)
 
-    members = models.ManyToManyField(User, "projects", blank=True)
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, "projects", blank=True)
 
     @override
     def __str__(self) -> str:

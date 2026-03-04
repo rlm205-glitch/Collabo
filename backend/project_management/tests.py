@@ -5,7 +5,7 @@ import json
 
 from project_management.views import get_project
 from .models import Project
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user, get_user_model
 
 
 # Create your tests here.
@@ -48,7 +48,7 @@ class ProjectTests(TestCase):
             )
         ]
 
-        _ = User.objects.create_user(
+        get_user_model().objects.create_user(
             username="testuser",
             password="TestPswd123!"
         )
@@ -117,17 +117,17 @@ class ProjectTests(TestCase):
             ),
         ]
 
-        _ = User.objects.create_user(
+        _ = get_user_model().objects.create_user(
             username="project joiner",
             password="TestPswd123!"
         )
 
-        _ = User.objects.create_user(
+        _ = get_user_model().objects.create_user(
             username="project joiner two",
             password="TestPswd123!"
         )
 
-        _ = User.objects.create_user(
+        _ = get_user_model().objects.create_user(
             username="project creator",
             password="TestPswd123!"
         )
