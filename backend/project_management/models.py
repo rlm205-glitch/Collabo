@@ -22,7 +22,7 @@ class Project(models.Model):
 
     @override
     def __str__(self) -> str:
-        return f"{self.title} - {self.author}"
+        return f"Project by {self.author}: {self.title} - '{self.short_description}'"
 
 class Report(models.Model):
     REASON_CHOICES = [
