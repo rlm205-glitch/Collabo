@@ -120,20 +120,17 @@ class ProjectTests(TestCase):
 
         _ = get_user_model().objects.create_user(
             username="project joiner",
-            password="TestPswd123!",
-            email="pj1@case.edu"
+            password="TestPswd123!"
         )
 
         _ = get_user_model().objects.create_user(
             username="project joiner two",
-            password="TestPswd123!",
-            email="pj2@case.edu"
+            password="TestPswd123!"
         )
 
         _ = get_user_model().objects.create_user(
             username="project creator",
-            password="TestPswd123!",
-            email="pc1@case.edu"
+            password="TestPswd123!"
         )
 
         _ = self.client.login(username="project creator", password="TestPswd123!")
@@ -187,6 +184,7 @@ class ProjectTests(TestCase):
         self.assertEqual(len(project1.members.all()), 2)
         self.assertEqual(len(project2.members.all()), 3)
 
+<<<<<<< HEAD
     def test_list_projects(self):
         testcases = [
             (
@@ -300,14 +298,12 @@ class ProjectTests(TestCase):
 
         get_user_model().objects.create_user(
             username="testuser",
-            password="TestPswd123!",
-            email="testuser@case.edu"
+            password="TestPswd123!"
         )
 
         second_user = get_user_model().objects.create_user(
             username="seconduser",
-            password="TestPswd123!",
-            email="seconduser@case.edu"
+            password="TestPswd123!"
         )
 
         _ = self.client.login(username="testuser", password="TestPswd123!")
@@ -345,34 +341,7 @@ class ProjectTests(TestCase):
                 path=reverse("get_project"),
                 data=json.dumps({
                     "id": id
-                }),
-                content_type="application/json"
-            )
-
-            project = response.json().get("project", {})
-
-            self.assertEqual(response.json().get("success"), True)
-            self.assertEqual(project.get("title", ""), title)
-            self.assertEqual(project.get("short_description", ""), short_description)
-            self.assertEqual(project.get("extended_description", ""), extended_description)
-            self.assertEqual(project.get("preferred_skills", ""), preferred_skills)
-            self.assertEqual(project.get("author", ""), "testuser")
-
-            if id == 1:
-                self.assertEqual(len(project.get("members", [])), 1)
-            else:
-                self.assertEqual(len(project.get("members", [])), 2)
-
-        bad_response = self.client.post(
-            path=reverse("get_project"),
-            data=json.dumps({
-                "id": 999
-            }),
-            content_type="application/json"
-        )
-
-        self.assertEqual(bad_response.json().get("success"), False)
-
+=======
 
 class ReportTests(TestCase):
     def test_report_project(self):
@@ -552,10 +521,36 @@ class ReportTests(TestCase):
                     "project_id": project_id,
                     "reason": reason,
                     "description": f"Reporting for {reason}",
+>>>>>>> d2c41af (Add admin views and a couple of tests for reporting and deleting projects)
                 }),
                 content_type="application/json"
             )
 
+<<<<<<< HEAD
+            project = response.json().get("project", {})
+
+            self.assertEqual(response.json().get("success"), True)
+            self.assertEqual(project.get("title", ""), title)
+            self.assertEqual(project.get("short_description", ""), short_description)
+            self.assertEqual(project.get("extended_description", ""), extended_description)
+            self.assertEqual(project.get("preferred_skills", ""), preferred_skills)
+            self.assertEqual(project.get("author", ""), "testuser")
+
+            if id == 1:
+                self.assertEqual(len(project.get("members", [])), 1)
+            else:
+                self.assertEqual(len(project.get("members", [])), 2)
+
+        bad_response = self.client.post(
+            path=reverse("get_project"),
+            data=json.dumps({
+                "id": 999
+            }),
+            content_type="application/json"
+        )
+
+        self.assertEqual(bad_response.json().get("success"), False)
+=======
         # Non-staff user should get 403
         response = self.client.post(
             path=reverse("list_reports"),
@@ -686,3 +681,4 @@ class ReportTests(TestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 404)
+>>>>>>> d2c41af (Add admin views and a couple of tests for reporting and deleting projects)
