@@ -1,5 +1,3 @@
-from codecs import ignore_errors
-from ctypes import cast
 import json
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -35,6 +33,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
             title=json_body.get("title", ""),
             short_description=json_body.get("short_description", ""),
             author=request.user.get_username(),
+            author_id=request.user.id,
             extended_description=json_body.get("extended_description", ""),
 
             preferred_skills=json_body.get("preferred_skills", []),
@@ -93,7 +92,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 for filter_item in filters:
                     if isinstance(filter_item, dict):
                         projects = projects.filter(**filter_item)
-        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "workload_per_week", "preferred_skills"))
+        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "author_id", "project_type", "workload_per_week", "preferred_skills"))
 
         return JsonResponse({ "success": True,
             "condensed_projects": condensed_project_data,
@@ -124,6 +123,7 @@ def get_project(request: HttpRequest) -> HttpResponse:
             "title": project.title,
             "short_description": project.short_description,
             "author": project.author,
+            "author_id": project.author_id,
             "extended_description": project.extended_description,
             "preferred_skills": project.preferred_skills,
             "project_type": project.project_type,
