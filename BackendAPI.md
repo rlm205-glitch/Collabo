@@ -142,6 +142,86 @@
 }
 ```
 
+### Report Project: Via HTTP POST with JSON data
+
+- URL: {backend ip}/project_management/report_project
+- Requires Login (Handled automatically by Django)
+- JSON Request Data:
+
+```
+{
+  "project_id": {project_id},
+  "reason": {reason},
+  "description": {description}
+}
+```
+
+- `reason` must be one of: `"spam"`, `"inappropriate"`, `"misleading"`, `"harassment"`, `"other"`
+- `description` is optional (free-text, max 1000 chars)
+- Each user can only report a given project once
+- Returns JSONResponse:
+
+```
+{
+  "success": {bool},
+  "report_id": {report_id}
+}
+```
+
+### List Reports (Admin): Via HTTP POST with JSON data
+
+- URL: {backend ip}/project_management/list_reports
+- Requires Login + Staff (is_staff=True)
+- JSON Request Data:
+
+```
+{
+  "project_id": {project_id}
+}
+```
+
+- `project_id` is optional — omit to list all reports
+- Returns JSONResponse:
+
+```
+{
+  "success": {boolean},
+  "reports": [
+    {
+      "id": id,
+      "project_id": project_id,
+      "project_title": project_title,
+      "reporter_username": reporter_username,
+      "reason": reason,
+      "description": description,
+      "created_at": created_at
+    }
+  ],
+  "report_count": {size of reports array}
+}
+```
+
+### Admin Delete Project (Admin): Via HTTP POST with JSON data
+
+- URL: {backend ip}/project_management/admin_delete_project
+- Requires Login + Staff (is_staff=True)
+- Permanently deletes any project regardless of author
+- JSON Request Data:
+
+```
+{
+  "id": {project_id}
+}
+```
+
+- Returns JSONResponse:
+
+```
+{
+  "success": {boolean}
+}
+```
+
 ## User Authentication
 
 ### Register User: Via HTTP POST with JSON data
