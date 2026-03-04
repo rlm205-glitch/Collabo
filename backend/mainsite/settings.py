@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-9@u#*96ft400=b3l+g00tams)jxh(a$m0r1ff^2l$%4e7l^=&y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -129,3 +129,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# email validation
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "collabocwru.noreply@gmail.com"
+EMAIL_HOST_PASSWORD = "prwk hxzv wqux cpsh"
+
+DEFAULT_FROM_EMAIL = "Collabo <collabocwru.noreply@gmail.com>"
+
+FRONTEND_URL = "http://localhost:5173"
