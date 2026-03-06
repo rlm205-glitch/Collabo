@@ -184,6 +184,12 @@ class ProjectTests(TestCase):
         self.assertEqual(len(project2.members.all()), 3)
 
 
+# ------------------------------------------------------------
+# Tests the list_projects endpoint.
+# Creates several projects, calls the list_projects API,
+# and verifies that all projects are returned with the correct
+# fields and that filtering works properly.
+# ------------------------------------------------------------
     def test_list_projects(self):
         testcases = [
             (
@@ -272,7 +278,12 @@ class ProjectTests(TestCase):
             "Gridfall"
         )
 
-
+# ------------------------------------------------------------
+# Tests the get_project endpoint.
+# Creates projects, requests each one by ID using the API,
+# and verifies the full project details are returned correctly,
+# including project fields and member information.
+# ------------------------------------------------------------
     def test_get_project(self):
         testcases = [
             (
