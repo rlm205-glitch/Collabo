@@ -6,6 +6,8 @@ import { StudentDashboard } from './components/StudentDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { HomePage } from "./components/HomePage";
 import VerifyEmail from './components/VerifyEmail';
+import { ForgotPassword } from './components/ForgotPassword';
+import { ResetPassword } from './components/ResetPassword';
 
 
 export type UserRole = 'student' | 'admin';
@@ -194,7 +196,6 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-    navigate('/login');
     return null;
   };
 
@@ -284,6 +285,8 @@ function App() {
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="*"
           element={
