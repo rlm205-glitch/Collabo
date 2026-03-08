@@ -8,4 +8,6 @@ urlpatterns = [
     path("whoami/", views.whoami, name="whoami"),
     path("logout/", views.logout_user, name="logout_user"),
     path("verify-email/", views.verify_email, name="verify_email"),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
+    path("reset-password/", views.reset_password, name="reset_password"),
 ]
