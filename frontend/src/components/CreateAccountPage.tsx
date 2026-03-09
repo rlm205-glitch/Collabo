@@ -14,6 +14,7 @@ export function CreateAccountPage({ onRegister }: CreateAccountPageProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,12 +29,35 @@ export function CreateAccountPage({ onRegister }: CreateAccountPageProps) {
     setLoading(true);
     const err = await onRegister(email, password, firstName, lastName);
     setLoading(false);
-    if (err) setError(err);
+    if (err) {
+      setError(err);
+    } else {
+      setSuccess(true);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+        {success ? (
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <LogIn className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email!</h2>
+            <p className="text-gray-600 mb-6">
+              We sent a verification link to <span className="font-medium text-blue-600">{email}</span>.
+              Please click the link to activate your account before signing in.
+            </p>
+            <Link
+              to="/login"
+              className="w-full inline-block bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center"
+            >
+              Go to Sign In
+            </Link>
+          </div>
+        ) : (
+          <>
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-white" />
@@ -143,6 +167,8 @@ export function CreateAccountPage({ onRegister }: CreateAccountPageProps) {
         <p className="text-xs text-gray-500 text-center mt-4">
           This platform is restricted to current CWRU students only
         </p>
+        </>
+      )}
       </div>
     </div>
   );
