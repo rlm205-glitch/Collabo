@@ -1,10 +1,10 @@
+from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import get_user_model, login, authenticate
 from . import utilities
 import json
 from django.conf import settings
