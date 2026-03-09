@@ -1,18 +1,20 @@
-from django.contrib.auth.models import User
+import hashlib
+import json
+import secrets
+from datetime import timedelta
+
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import get_user_model, login, authenticate
-from . import utilities
-import json
-from django.conf import settings
-from django.core.mail import send_mail
 from django.utils import timezone
-from datetime import timedelta
-from .models import EmailVerificationToken
-import hashlib, secrets
+from django.views.decorators.csrf import csrf_exempt
+
+from . import utilities
+from .models import EmailVerificationToken, PasswordResetToken
 
 POST_LOGIN_PAGE_URL: str = "http://localhost:5173"
 
@@ -23,7 +25,7 @@ def register_user(request: HttpRequest) -> HttpResponse:
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
     json_body: dict[str, str] = dict(json.loads(request.body))
-    email = json_body.get("email")
+    email = (json_body.get("email") or "").strip()
     password: str = json_body.get("password") or ""
     first_name: str = json_body.get("first_name") or ""
     last_name: str = json_body.get("last_name") or ""
@@ -31,10 +33,12 @@ def register_user(request: HttpRequest) -> HttpResponse:
     if not email or not utilities.valid_case_email(email):
         return HttpResponseBadRequest(b"Please enter a valid CWRU email")
 
+    UserModel = get_user_model()
+
     try:
         validate_password(password)
 
-        user = User.objects.create_user(
+        user = UserModel.objects.create_user(
             username=email,
             email=email,
             password=password,
@@ -62,7 +66,6 @@ def register_user(request: HttpRequest) -> HttpResponse:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
         )
-
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
@@ -82,15 +85,16 @@ def login_user(request: HttpRequest) -> HttpResponse:
     email = (json_body.get("email") or "").strip()
     password: str = json_body.get("password") or ""
 
-    # If user exists but is inactive, give a specific error
+    UserModel = get_user_model()
+
     try:
-        u = User.objects.get(username=email)
+        u = UserModel.objects.get(username=email)
         if not u.is_active:
             return JsonResponse(
                 {"success": False, "error": "Please verify your email before logging in."},
                 status=403,
             )
-    except User.DoesNotExist:
+    except UserModel.DoesNotExist:
         pass
 
     if (user := authenticate(request, username=email, password=password)) is not None:
@@ -104,9 +108,9 @@ def login_user(request: HttpRequest) -> HttpResponse:
         )
 
         return JsonResponse({"success": True, "redirect_url": POST_LOGIN_PAGE_URL})
+
     return JsonResponse({"success": False, "error": "Invalid Login Credentials"}, status=400)
 
-  
 
 @csrf_exempt
 def verify_email(request: HttpRequest) -> HttpResponse:
@@ -126,7 +130,6 @@ def verify_email(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"success": False, "error": "Invalid token"}, status=400)
 
     if rec.used_at is not None:
-        # treat as success so repeated calls don't look like failure
         return JsonResponse({"success": True, "already_verified": True})
 
     if timezone.now() >= rec.expires_at:
@@ -141,7 +144,6 @@ def verify_email(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse({"success": True})
 
-from .models import EmailVerificationToken, PasswordResetToken
 
 @csrf_exempt
 def forgot_password(request: HttpRequest) -> HttpResponse:
@@ -151,9 +153,10 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
     json_body = dict(json.loads(request.body))
     email = (json_body.get("email") or "").strip()
 
-    # always return success so we don't leak whether an email exists
+    UserModel = get_user_model()
+
     try:
-        user = User.objects.get(username=email)
+        user = UserModel.objects.get(username=email)
 
         raw_token = secrets.token_urlsafe(16)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
@@ -172,7 +175,7 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
         )
-    except User.DoesNotExist:
+    except UserModel.DoesNotExist:
         pass
 
     return JsonResponse({"success": True})
@@ -203,7 +206,6 @@ def reset_password(request: HttpRequest) -> HttpResponse:
     if timezone.now() >= rec.expires_at:
         return JsonResponse({"success": False, "error": "Token expired"}, status=400)
 
-    # validate new password using Django's built-in validators
     try:
         validate_password(new_password, user=rec.user)
     except ValidationError as e:
