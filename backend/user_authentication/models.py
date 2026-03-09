@@ -1,19 +1,30 @@
 from django.db import models
-from django.conf import settings
-from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class CollaboUser(AbstractUser):
+    major = models.TextField(max_length=50, help_text='Major', default="")
+    skills = models.JSONField(default=list)
+    interests = models.JSONField(default=list)
+    availability =  models.TextField(max_length=500, help_text='Availability', default="")
+    preferred_contact_method = models.TextField(max_length=50, help_text='Preferred Contact Method', default="")
+    contact_information = models.TextField(max_length=100, help_text='Contact Information', default="")
+
+    def __str__(self):
+        return self.email
 
 class EmailVerificationToken(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token_hash = models.CharField(max_length=64, unique=True)  # sha256 hex
+    user = models.ForeignKey(CollaboUser, on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
 
     def is_valid(self):
         return self.used_at is None and timezone.now() < self.expires_at
 
+
 class PasswordResetToken(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CollaboUser, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)

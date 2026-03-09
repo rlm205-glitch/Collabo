@@ -1,17 +1,16 @@
+from .models import EmailVerificationToken, PasswordResetToken
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import get_user_model, login, authenticate
 from . import utilities
 import json
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
-from .models import EmailVerificationToken
 import hashlib, secrets
 
 POST_LOGIN_PAGE_URL: str = "http://localhost:5173"
@@ -34,6 +33,7 @@ def register_user(request: HttpRequest) -> HttpResponse:
     try:
         validate_password(password)
 
+        User = get_user_model()
         user = User.objects.create_user(
             username=email,
             email=email,
@@ -62,7 +62,6 @@ def register_user(request: HttpRequest) -> HttpResponse:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
         )
-
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
@@ -84,6 +83,7 @@ def login_user(request: HttpRequest) -> HttpResponse:
 
     # If user exists but is inactive, give a specific error
     try:
+        User = get_user_model()
         u = User.objects.get(username=email)
         if not u.is_active:
             return JsonResponse(
@@ -141,7 +141,6 @@ def verify_email(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse({"success": True})
 
-from .models import EmailVerificationToken, PasswordResetToken
 
 @csrf_exempt
 def forgot_password(request: HttpRequest) -> HttpResponse:
@@ -153,6 +152,7 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
 
     # always return success so we don't leak whether an email exists
     try:
+        User = get_user_model()
         user = User.objects.get(username=email)
 
         raw_token = secrets.token_urlsafe(16)

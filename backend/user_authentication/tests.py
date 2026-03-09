@@ -1,8 +1,8 @@
+from django.contrib.auth import get_user_model
 import json
 from django.test import TestCase
 from django.urls import reverse
 from django.core import mail
-from django.contrib.auth.models import User
 from .models import EmailVerificationToken, PasswordResetToken
 import hashlib
 
@@ -10,9 +10,9 @@ SUCCESS: int = 200
 FAILURE: int = 400
 
 class ForgotPasswordTests(TestCase):
-
     def setUp(self):
         # create a verified user to test with
+        User = get_user_model()
         self.user = User.objects.create_user(
             username="xaj3@case.edu",
             email="xaj3@case.edu",
@@ -114,7 +114,7 @@ class ForgotPasswordTests(TestCase):
 
 
 class EmailVerificationTests(TestCase):
-
+    User = get_user_model()
     def test_registration_sends_verification_email(self):
         # registering should trigger a verification email
         self.client.post(
@@ -153,6 +153,7 @@ class EmailVerificationTests(TestCase):
             content_type="application/json"
         )
 
+        User = get_user_model()
         user = User.objects.get(username="xaj3@case.edu")
         token_rec = EmailVerificationToken.objects.get(user=user)
 
@@ -172,6 +173,7 @@ class EmailVerificationTests(TestCase):
         self.assertTrue(user.is_active)
 
 class AuthenticationTests(TestCase):
+    User = get_user_model()
     def test_user_registration(self):
         testcases = [
             ("xaj3@case.edu", "Pswd123!", SUCCESS),
@@ -240,6 +242,7 @@ class AuthenticationTests(TestCase):
             )
             # activate the user so they can log in without email verification
             try:
+                User = get_user_model()
                 u = User.objects.get(username=email)
                 u.is_active = True
                 u.save()
