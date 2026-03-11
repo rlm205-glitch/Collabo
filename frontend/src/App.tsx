@@ -211,9 +211,38 @@ function App() {
     navigate('/');
   };
 
-  const updateUserProfile = (updatedUser: User) => {
-    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+  const updateUserProfile = async (updatedUser: User): Promise<void> => { //this takes a User object (gets it from UserprofileModal where the user updates their profile fields)
+    //sets the currentUser object to those fields 
+    //and sends the data to the backend
+    
+    // 1) Update UI immediately
     setCurrentUser(updatedUser);
+
+    // 2) Send to backend
+    const payload = {
+      name: updatedUser.name,
+      major: updatedUser.major,
+      skills: updatedUser.skills ?? [],
+      interests: updatedUser.interests ?? [],
+      availability: updatedUser.availability,
+      contactMethod: updatedUser.contactMethod,
+      contactInfo: updatedUser.contactInfo,
+      notificationSettings: updatedUser.notificationSettings,
+    };
+
+    const res = await fetch('/profile_management/update_profile/', {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      console.error('Failed to save profile');
+    }
+
+    // 3) Best practice: if backend returns updated user, replace local state
+    // const data = await res.json();
+    // setCurrentUser({ ...data.user, createdAt: new Date(data.user.createdAt) });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
