@@ -64,10 +64,10 @@ export function StudentDashboard({
   // --- Best Match scoring + sorting ---
   const normalize = (s: string) => s.toLowerCase().trim();
 
-  const mySkills = (currentUser.skills ?? []).map(normalize);
-  const myInterests = (currentUser.interests ?? []).map(normalize);
+  const mySkills = (currentUser.skills ?? []).map(normalize);             //get skills from current user
+  const myInterests = (currentUser.interests ?? []).map(normalize);       //get interests
 
-  const scoreProject = (project: Project) => {
+  const scoreProject = (project: Project) => {                            // takes one project and claculates how good a match it is for the user
     let score = 0;
 
     // +1 if any preferred skill matches my skills
@@ -81,12 +81,12 @@ export function StudentDashboard({
     return score;
   };
 
-  const displayedProjects =
+  const displayedProjects =                                             //if sortOption == 'best' then displayedProjects will equal filteredProjects with sorting applied, else just normal filteredProjects
     sortOption === 'best'
       ? [...filteredProjects].sort((a, b) => scoreProject(b) - scoreProject(a))
       : filteredProjects;
 
-  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);
+  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);          //finds projects created by currentUser
 
   return (
     <div className="min-h-screen bg-gray-50">
