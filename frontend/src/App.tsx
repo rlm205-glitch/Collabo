@@ -11,21 +11,20 @@ export type UserRole = 'student' | 'admin';
 
 export interface User {
   id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
   email: string;
-  name: string;
   role: UserRole;
   major?: string;
   skills?: string[];
   interests?: string[];
   availability?: string;
-  contactMethod?: string;
-  contactInfo?: string;
+  preferred_contact_method?: string;
+  active_project_notifications?: boolean;
+  project_expiration_notifications?: boolean;
+  weekly_update_notifications?: boolean;
   createdAt: Date;
-  notificationSettings?: {
-    emailReminders: boolean;
-    projectExpiry: boolean;
-    newMatches: boolean;
-  };
 }
 
 export interface Project {
