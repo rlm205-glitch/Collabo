@@ -142,6 +142,39 @@
 }
 ```
 
+## Profile Management
+
+### Update Profile: Via HTTP POST with JSON data
+
+- URL: {backend ip}/profile_management/update_profile
+- Requires Login (Handled automatically by Django)
+- JSON Request Data (all fields optional; omitted fields retain current values):
+
+```
+{
+  "first_name": {first_name},
+  "last_name": {last_name},
+  "email": {email},
+  "major": {major},
+  "skills": {skills},
+  "interests": {interests},
+  "availability": {availability},
+  "preferred_contact_method": {preferred_contact_method},
+  "active_project_notifications": {bool},
+  "project_expiration_notifications": {bool},
+  "weekly_update_notifications": {bool}
+}
+```
+
+- Returns JSONResponse:
+
+```
+{
+  "success": {bool},
+  "id": {user_id}
+}
+```
+
 ## User Authentication
 
 ### Register User: Via HTTP POST with JSON data

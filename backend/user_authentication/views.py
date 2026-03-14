@@ -27,7 +27,7 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
     try:
         validate_password(password)
-        _ = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
+        _ = get_user_model().objects.create_user(first_name + " " + last_name if first_name and last_name else email, email=email, password=password, first_name=first_name, last_name=last_name)
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
