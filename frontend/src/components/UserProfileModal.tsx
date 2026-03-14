@@ -66,22 +66,47 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                First Name *
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Last Name *
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               CWRU Email
             </label>
             <input
@@ -95,7 +120,10 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
           </div>
 
           <div>
-            <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="major"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Major
             </label>
             <input
@@ -109,7 +137,10 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
           </div>
 
           <div>
-            <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="skills"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Skills (comma-separated)
             </label>
             <input
@@ -123,7 +154,10 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
           </div>
 
           <div>
-            <label htmlFor="interests" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="interests"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Interests (comma-separated)
             </label>
             <input
@@ -137,7 +171,10 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
           </div>
 
           <div>
-            <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="availability"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Availability
             </label>
             <input
@@ -150,36 +187,24 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="contactMethod" className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Contact Method
-              </label>
-              <select
-                id="contactMethod"
-                value={contactMethod}
-                onChange={(e) => setContactMethod(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option>Email</option>
-                <option>Phone</option>
-                <option>Discord</option>
-                <option>LinkedIn</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Information
-              </label>
-              <input
-                type="text"
-                id="contactInfo"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <div>
+            <label
+              htmlFor="preferredContactMethod"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Preferred Contact Method
+            </label>
+            <select
+              id="preferredContactMethod"
+              value={preferredContactMethod}
+              onChange={(e) => setPreferredContactMethod(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="Email">Email</option>
+              <option value="Phone">Phone</option>
+              <option value="Discord">Discord</option>
+              <option value="LinkedIn">LinkedIn</option>
+            </select>
           </div>
 
           <div className="border-t border-gray-200 pt-6">
@@ -192,12 +217,15 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  id="emailReminders"
-                  checked={emailReminders}
-                  onChange={(e) => setEmailReminders(e.target.checked)}
+                  id="activeProjectNotifications"
+                  checked={activeProjectNotifications}
+                  onChange={(e) => setActiveProjectNotifications(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="emailReminders" className="text-sm text-gray-700">
+                <label
+                  htmlFor="activeProjectNotifications"
+                  className="text-sm text-gray-700"
+                >
                   Receive email reminders for active projects
                 </label>
               </div>
@@ -205,12 +233,15 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  id="projectExpiry"
-                  checked={projectExpiry}
-                  onChange={(e) => setProjectExpiry(e.target.checked)}
+                  id="projectExpirationNotifications"
+                  checked={projectExpirationNotifications}
+                  onChange={(e) => setProjectExpirationNotifications(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="projectExpiry" className="text-sm text-gray-700">
+                <label
+                  htmlFor="projectExpirationNotifications"
+                  className="text-sm text-gray-700"
+                >
                   Notify me when my project posts are about to expire
                 </label>
               </div>
@@ -218,12 +249,15 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  id="newMatches"
-                  checked={newMatches}
-                  onChange={(e) => setNewMatches(e.target.checked)}
+                  id="weeklyUpdateNotifications"
+                  checked={weeklyUpdateNotifications}
+                  onChange={(e) => setWeeklyUpdateNotifications(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="newMatches" className="text-sm text-gray-700">
+                <label
+                  htmlFor="weeklyUpdateNotifications"
+                  className="text-sm text-gray-700"
+                >
                   Send me weekly updates on new projects matching my interests
                 </label>
               </div>
