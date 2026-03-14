@@ -9,6 +9,9 @@ class CollaboUser(AbstractUser):
     availability =  models.TextField(max_length=500, help_text='Availability', default="")
     preferred_contact_method = models.TextField(max_length=50, help_text='Preferred Contact Method', default="")
     contact_information = models.TextField(max_length=100, help_text='Contact Information', default="")
+    active_project_notifications = models.BooleanField(default=True)
+    project_expiration_notifications = models.BooleanField(default=True)
+    weekly_update_notifications = models.BooleanField(default=False)
 
     def __str__(self):
         return self.email

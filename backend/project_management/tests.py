@@ -183,13 +183,6 @@ class ProjectTests(TestCase):
         self.assertEqual(len(project1.members.all()), 2)
         self.assertEqual(len(project2.members.all()), 3)
 
-
-# ------------------------------------------------------------
-# Tests the list_projects endpoint.
-# Creates several projects, calls the list_projects API,
-# and verifies that all projects are returned with the correct
-# fields and that filtering works properly.
-# ------------------------------------------------------------
     def test_list_projects(self):
         testcases = [
             (

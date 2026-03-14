@@ -31,7 +31,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
         project = Project.objects.create(
             title=json_body.get("title", ""),
             short_description=json_body.get("short_description", ""),
-            author=request.user.get_username(),
+            author=request.user.username,
             author_id=request.user.id,
             extended_description=json_body.get("extended_description", ""),
 
