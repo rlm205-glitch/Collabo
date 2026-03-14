@@ -95,7 +95,9 @@ export function StudentDashboard({
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">CWRU Collaboration Platform</h1>
-            <p className="text-sm text-gray-600">Welcome back, {currentUser.name}</p>
+            <p className="text-sm text-gray-600">
+              Welcome back, {currentUser.first_name} {currentUser.last_name}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
