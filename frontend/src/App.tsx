@@ -213,24 +213,27 @@ function App() {
   const updateUserProfile = async (updatedUser: User): Promise<void> => { //this takes a User object (gets it from UserprofileModal where the user updates their profile fields)
     //sets the currentUser object to those fields 
     //and sends the data to the backend
-    
+
     // 1) Update UI immediately
     setCurrentUser(updatedUser);
 
     // 2) Send to backend
     const payload = {
-      name: updatedUser.name,
+      first_name: updatedUser.first_name,
+      last_name: updatedUser.last_name,
+      email: updatedUser.email,
       major: updatedUser.major,
       skills: updatedUser.skills ?? [],
       interests: updatedUser.interests ?? [],
       availability: updatedUser.availability,
-      contactMethod: updatedUser.contactMethod,
-      contactInfo: updatedUser.contactInfo,
-      notificationSettings: updatedUser.notificationSettings,
+      preferred_contact_method: updatedUser.preferred_contact_method,
+      active_project_notifications: updatedUser.active_project_notifications,
+      project_expiration_notifications: updatedUser.project_expiration_notifications,
+      weekly_update_notifications: updatedUser.weekly_update_notifications,
     };
 
     const res = await fetch('/profile_management/update_profile/', {
-      method: 'POST', 
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
