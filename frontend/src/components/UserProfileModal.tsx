@@ -9,20 +9,21 @@ interface UserProfileModalProps {
 }
 
 export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProps) {
-  const [name, setName] = useState(user.name);
+  const [firstName, setFirstName] = useState(user.first_name || '');
+  const [lastName, setLastName] = useState(user.last_name || '');
   const [major, setMajor] = useState(user.major || '');
   const [skills, setSkills] = useState(user.skills?.join(', ') || '');
   const [interests, setInterests] = useState(user.interests?.join(', ') || '');
   const [availability, setAvailability] = useState(user.availability || '');
-  const [contactMethod, setContactMethod] = useState(user.contactMethod || 'Email');
-  const [contactInfo, setContactInfo] = useState(user.contactInfo || user.email);
-  const [emailReminders, setEmailReminders] = useState(user.notificationSettings?.emailReminders ?? true);
-  const [projectExpiry, setProjectExpiry] = useState(user.notificationSettings?.projectExpiry ?? true);
-  const [newMatches, setNewMatches] = useState(user.notificationSettings?.newMatches ?? false);
+  const [preferredContactMethod, setPreferredContactMethod] = useState(user.preferred_contact_method || 'Email');
+  const [activeProjectNotifications, setActiveProjectNotifications] = useState(user.active_project_notifications ?? true);
+  const [projectExpirationNotifications, setProjectExpirationNotifications] = useState(user.project_expiration_notifications ?? true);
+  const [weeklyUpdateNotifications, setWeeklyUpdateNotifications] = useState(user.weekly_update_notifications ?? false);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const skillsArray = skills
       .split(',')
       .map(skill => skill.trim())
@@ -33,7 +34,7 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
       .map(interest => interest.trim())
       .filter(interest => interest.length > 0);
 
-    onSave({
+    onSave({                                          //this onSave function is the same function updateUserProfile from App.tsx and we are giving it arguments
       ...user,
       name,
       major,
@@ -187,7 +188,7 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
               <Bell className="w-5 h-5 text-gray-700" />
               <h3 className="font-medium text-gray-900">Email Notification Preferences</h3>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <input
