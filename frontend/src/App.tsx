@@ -21,7 +21,7 @@ export interface User {
   interests?: string[];
   availability?: string;
   preferred_contact_method?: string;
-  active_project_reminders?: boolean;
+  active_project_notifications?: boolean;
   project_expiration_notifications?: boolean;
   weekly_update_notifications?: boolean;
   createdAt: Date;
