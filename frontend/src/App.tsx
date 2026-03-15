@@ -164,12 +164,35 @@ function App() {
       return data?.error || 'Invalid login credentials';
     }
 
-    const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    // 2) Fetch the authenticated user's profile
+    const profileRes = await fetch('/profile_management/get_self_profile/', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!profileRes.ok) {
+      console.error('Failed to fetch user profile');
+      return 'Login succeeded, but failed to load profile';
+    }
+
+    const profileData = await profileRes.json();
+
+    // 3) Set the current user using backend data
     setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
+      id: profileData.user.id,
+      first_name: profileData.user.first_name,
+      last_name: profileData.user.last_name,
+      username: profileData.user.username,
+      email: profileData.user.email,
       role: 'student',
+      major: profileData.user.major,
+      skills: profileData.user.skills ?? [],
+      interests: profileData.user.interests ?? [],
+      availability: profileData.user.availability,
+      preferred_contact_method: profileData.user.preferred_contact_method,
+      active_project_notifications: profileData.user.active_project_notifications,
+      project_expiration_notifications: profileData.user.project_expiration_notifications,
+      weekly_update_notifications: profileData.user.weekly_update_notifications,
       createdAt: new Date(),
     });
     navigate('/');
