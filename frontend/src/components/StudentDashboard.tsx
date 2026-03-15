@@ -82,7 +82,7 @@ export function StudentDashboard({
   };
 
   const displayedProjects =                                             //if sortOption == 'best' then displayedProjects will equal filteredProjects with sorting applied, else just normal filteredProjects
-    sortOption === 'best'
+    sortOption === 'best'                                               // displayed projects takes all the filtered projects and applies the sorting so displayed projects is a list of the sorted projects
       ? [...filteredProjects].sort((a, b) => scoreProject(b) - scoreProject(a))
       : filteredProjects;
 
