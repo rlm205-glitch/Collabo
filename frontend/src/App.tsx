@@ -165,7 +165,7 @@ function App() {
     }
 
     // 2) Fetch the authenticated user's profile
-    const profileRes = await fetch('/profile_management/get_profile/', {
+    const profileRes = await fetch('/profile_management/get_self_profile/', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
