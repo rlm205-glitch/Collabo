@@ -159,40 +159,27 @@ function App() {
       body: JSON.stringify({ email, password }),
     });
 
+    const data = await res.json().catch(() => null);
+
     if (!res.ok) {
-      const data = await res.json().catch(() => null);
       return data?.error || 'Invalid login credentials';
     }
 
-    // 2) Fetch the authenticated user's profile
-    const profileRes = await fetch('/profile_management/get_self_profile/', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (!profileRes.ok) {
-      console.error('Failed to fetch user profile');
-      return 'Login succeeded, but failed to load profile';
-    }
-
-    const profileData = await profileRes.json();
-
-    // 3) Set the current user using backend data
     setCurrentUser({
-      id: profileData.user.id,
-      first_name: profileData.user.first_name,
-      last_name: profileData.user.last_name,
-      username: profileData.user.username,
-      email: profileData.user.email,
+      id: data.id,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      username: data.username,
+      email: data.email,
       role: 'student',
-      major: profileData.user.major,
-      skills: profileData.user.skills ?? [],
-      interests: profileData.user.interests ?? [],
-      availability: profileData.user.availability,
-      preferred_contact_method: profileData.user.preferred_contact_method,
-      active_project_notifications: profileData.user.active_project_notifications,
-      project_expiration_notifications: profileData.user.project_expiration_notifications,
-      weekly_update_notifications: profileData.user.weekly_update_notifications,
+      major: data.major,
+      skills: data.skills ?? [],
+      interests: data.interests ?? [],
+      availability: data.availability,
+      preferred_contact_method: data.preferred_contact_method,
+      active_project_notifications: data.active_project_notifications,
+      project_expiration_notifications: data.project_expiration_notifications,
+      weekly_update_notifications: data.weekly_update_notifications,
       createdAt: new Date(),
     });
     navigate('/');
@@ -255,7 +242,7 @@ function App() {
       weekly_update_notifications: updatedUser.weekly_update_notifications,
     };
 
-    const res = await fetch('/profile_management/update_profile/', {
+    const res = await fetch('/profile_management/update_profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
