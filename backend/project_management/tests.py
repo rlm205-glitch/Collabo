@@ -378,17 +378,21 @@ class ReportTests(TestCase):
     def test_report_project(self):
         creator = get_user_model().objects.create_user(
             username="creator@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="creator@case.edu"
         )
 
         reporter = get_user_model().objects.create_user(
             username="reporter@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="reporter@case.edu"
+
         )
 
         second_reporter = get_user_model().objects.create_user(
             username="reporter2@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="reporter2@case.edu"
         )
 
         # Create two projects as creator
@@ -502,17 +506,20 @@ class ReportTests(TestCase):
     def test_list_reports(self):
         creator = get_user_model().objects.create_user(
             username="creator@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="creator@case.edu"
         )
 
         reporter = get_user_model().objects.create_user(
             username="reporter@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="reporter@case.edu"
         )
 
         admin = get_user_model().objects.create_user(
             username="admin@case.edu",
             password="AdminPswd123!",
+            email="admin@case.edu",
             is_staff=True
         )
 
@@ -599,17 +606,20 @@ class ReportTests(TestCase):
     def test_admin_delete_project(self):
         creator = get_user_model().objects.create_user(
             username="creator@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="creator@case.edu"
         )
 
         regular_user = get_user_model().objects.create_user(
             username="regular@case.edu",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="regular@case.edu"
         )
 
         admin = get_user_model().objects.create_user(
             username="admin@case.edu",
             password="AdminPswd123!",
+            email="admin@case.edu",
             is_staff=True
         )
 
