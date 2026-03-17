@@ -75,6 +75,7 @@ def login_user(request: HttpRequest) -> HttpResponse:
             "active_project_notifications": user.active_project_notifications, # pyright: ignore
             "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
             "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "is_staff": user.is_staff
         })
 
     return JsonResponse(
