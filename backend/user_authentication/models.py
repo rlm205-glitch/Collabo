@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class CollaboUser(AbstractUser):
+    email = models.EmailField(unique=True)
     major = models.TextField(max_length=50, help_text='Major', default="")
     skills = models.JSONField(default=list)
     interests = models.JSONField(default=list)
@@ -11,7 +12,7 @@ class CollaboUser(AbstractUser):
     contact_information = models.TextField(max_length=100, help_text='Contact Information', default="")
     active_project_notifications = models.BooleanField(default=True)
     project_expiration_notifications = models.BooleanField(default=True)
-    weekly_update_notifications = models.BooleanField(default=False)
+    weekly_update_notifications = models.BooleanField(default=True)
 
     def __str__(self):
         return self.email

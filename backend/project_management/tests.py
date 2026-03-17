@@ -119,17 +119,20 @@ class ProjectTests(TestCase):
 
         _ = get_user_model().objects.create_user(
             username="project joiner",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="pj1@case.edu"
         )
 
         _ = get_user_model().objects.create_user(
             username="project joiner two",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="pj2@case.edu"
         )
 
         _ = get_user_model().objects.create_user(
             username="project creator",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="pc1@case.edu"
         )
 
         _ = self.client.login(username="project creator", password="TestPswd123!")
@@ -296,12 +299,14 @@ class ProjectTests(TestCase):
 
         get_user_model().objects.create_user(
             username="testuser",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="testuser@case.edu"
         )
 
         second_user = get_user_model().objects.create_user(
             username="seconduser",
-            password="TestPswd123!"
+            password="TestPswd123!",
+            email="seconduser@case.edu"
         )
 
         _ = self.client.login(username="testuser", password="TestPswd123!")

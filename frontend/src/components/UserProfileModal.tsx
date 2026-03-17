@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { User } from '../App';
 import { X, Bell } from 'lucide-react';
 
@@ -20,6 +20,26 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
   const [projectExpirationNotifications, setProjectExpirationNotifications] = useState(user.project_expiration_notifications ?? true);
   const [weeklyUpdateNotifications, setWeeklyUpdateNotifications] = useState(user.weekly_update_notifications ?? false);
 
+
+  useEffect(() => {
+    fetch('/profile_management/get_self_profile', { method: 'GET' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setFirstName(data.first_name || '');
+          setLastName(data.last_name || '');
+          setMajor(data.major || '');
+          setSkills(data.skills?.join(', ') || '');
+          setInterests(data.interests?.join(', ') || '');
+          setAvailability(data.availability || '');
+          setPreferredContactMethod(data.preferred_contact_method || 'Email');
+          setActiveProjectNotifications(data.active_project_notifications ?? true);
+          setProjectExpirationNotifications(data.project_expiration_notifications ?? true);
+          setWeeklyUpdateNotifications(data.weekly_update_notifications ?? false);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

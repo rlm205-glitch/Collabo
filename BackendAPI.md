@@ -175,6 +175,62 @@
 }
 ```
 
+### Get Self Profile: Via HTTP GET
+
+- URL: {backend ip}/profile_management/get_self_profile
+- Requires Login (Handled automatically by Django)
+- No request body needed
+
+- Returns JSONResponse:
+
+```
+{
+  "success": {bool},
+  "id": {user_id},
+  "first_name": {first_name},
+  "last_name": {last_name},
+  "username": {username},
+  "email": {email},
+  "major": {major},
+  "skills": {skills},
+  "interests": {interests},
+  "availability": {availability},
+  "preferred_contact_method": {preferred_contact_method},
+  "active_project_notifications": {bool},
+  "project_expiration_notifications": {bool},
+  "weekly_update_notifications": {bool}
+}
+```
+
+### Get Profile: Via HTTP POST with JSON data
+
+- URL: {backend ip}/profile_management/get_profile
+- Requires Login (Handled automatically by Django)
+- JSON Request Data:
+
+```
+{
+  "id": {user_id}
+}
+```
+
+- Returns JSONResponse:
+
+```
+{
+  "success": {bool},
+  "first_name": {first_name},
+  "last_name": {last_name},
+  "username": {username},
+  "email": {email},
+  "major": {major},
+  "skills": {skills},
+  "interests": {interests},
+  "availability": {availability},
+  "preferred_contact_method": {preferred_contact_method}
+}
+```
+
 ## User Authentication
 
 ### Register User: Via HTTP POST with JSON data
@@ -224,7 +280,20 @@
 
 {
   "success": {bool},
-  "redirect_url": {redirect_url}
+  "redirect_url": {redirect_url},
+  "id": {user_id},
+  "first_name": {first_name},
+  "last_name": {last_name},
+  "username": {username},
+  "email": {email},
+  "major": {major},
+  "skills": {skills},
+  "interests": {interests},
+  "availability": {availability},
+  "preferred_contact_method": {preferred_contact_method},
+  "active_project_notifications": {bool},
+  "project_expiration_notifications": {bool},
+  "weekly_update_notifications": {bool}
 }
 
 ```

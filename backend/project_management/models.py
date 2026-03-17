@@ -23,3 +23,4 @@ class Project(models.Model):
     @override
     def __str__(self) -> str:
         return f"{self.title} - {self.author}"
+
