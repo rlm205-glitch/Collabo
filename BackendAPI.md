@@ -293,7 +293,8 @@
   "preferred_contact_method": {preferred_contact_method},
   "active_project_notifications": {bool},
   "project_expiration_notifications": {bool},
-  "weekly_update_notifications": {bool}
+  "weekly_update_notifications": {bool},
+  "is_staff": {bool}
 }
 ```
 
@@ -322,7 +323,8 @@
   "skills": {skills},
   "interests": {interests},
   "availability": {availability},
-  "preferred_contact_method": {preferred_contact_method}
+  "preferred_contact_method": {preferred_contact_method},
+  "is_staff": {bool}
 }
 ```
 
@@ -383,6 +385,7 @@
   "preferred_contact_method": {preferred_contact_method},
   "active_project_notifications": {bool},
   "project_expiration_notifications": {bool},
-  "weekly_update_notifications": {bool}
+  "weekly_update_notifications": {bool},
+  "is_staff": {bool}
 }
 ```
