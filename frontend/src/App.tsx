@@ -11,21 +11,20 @@ export type UserRole = 'student' | 'admin';
 
 export interface User {
   id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
   email: string;
-  name: string;
   role: UserRole;
   major?: string;
   skills?: string[];
   interests?: string[];
   availability?: string;
-  contactMethod?: string;
-  contactInfo?: string;
+  preferred_contact_method?: string;
+  active_project_notifications?: boolean;
+  project_expiration_notifications?: boolean;
+  weekly_update_notifications?: boolean;
   createdAt: Date;
-  notificationSettings?: {
-    emailReminders: boolean;
-    projectExpiry: boolean;
-    newMatches: boolean;
-  };
 }
 
 export interface Project {
@@ -42,6 +41,8 @@ export interface Project {
   contactMethod: string;
   contactInfo: string;
   createdAt: Date;
+  creationTime?: string;
+  updatedTime?: string;
   isActive: boolean;
   reportCount?: number;
 }
@@ -49,8 +50,10 @@ export interface Project {
 export interface Report {
   id: string;
   projectId: string;
+  projectTitle: string;
   reportedBy: string;
   reason: string;
+  description: string;
   createdAt: Date;
 }
 
@@ -82,7 +85,7 @@ function App() {
             preferredSkills: p.preferred_skills || [],
             isActive: true,
             fullDescription: '',
-            timeCommitment: '',
+            timeCommitment: p.workload_per_week || '',
             contactMethod: '',
             contactInfo: '',
             createdAt: new Date(),
@@ -119,7 +122,9 @@ function App() {
           contactMethod: p.preferred_contact_method || '',
           contactInfo: p.contact_information || '',
           isActive: true,
-          createdAt: new Date(),
+          createdAt: p.creation_time ? new Date(p.creation_time) : new Date(),
+          creationTime: p.creation_time || '',
+          updatedTime: p.updated_time || '',
         };
       }
     } catch (e) {
@@ -159,6 +164,10 @@ function App() {
   useEffect(() => {
     if (currentUser) {
       fetchProjects();
+
+      if (currentUser.role === 'admin') {                   //if user is an admin we will always fetch projects which will be stored in reports
+        fetchReports();
+      }
     }
   }, [currentUser]);
 
@@ -169,17 +178,27 @@ function App() {
       body: JSON.stringify({ email, password }),
     });
 
+    const data = await res.json().catch(() => null);
+
     if (!res.ok) {
-      const data = await res.json().catch(() => null);
       return data?.error || 'Invalid login credentials';
     }
 
-    const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
     setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'student',
+      id: data.id,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      username: data.username,
+      email: data.email,
+      role: data.is_staff ? 'admin' : 'student',
+      major: data.major,
+      skills: data.skills ?? [],
+      interests: data.interests ?? [],
+      availability: data.availability,
+      preferred_contact_method: data.preferred_contact_method,
+      active_project_notifications: data.active_project_notifications,
+      project_expiration_notifications: data.project_expiration_notifications,
+      weekly_update_notifications: data.weekly_update_notifications,
       createdAt: new Date(),
     });
     navigate('/');
@@ -203,15 +222,7 @@ function App() {
       return text || 'Failed to create account';
     }
 
-    const name = `${firstName} ${lastName}`;
-    setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'student',
-      createdAt: new Date(),
-    });
-    navigate('/');
+    navigate('/login');
     return null;
   };
 
@@ -220,9 +231,41 @@ function App() {
     navigate('/');
   };
 
-  const updateUserProfile = (updatedUser: User) => {
-    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+  const updateUserProfile = async (updatedUser: User): Promise<void> => { //this takes a User object (gets it from UserprofileModal where the user updates their profile fields)
+    //sets the currentUser object to those fields 
+    //and sends the data to the backend
+
+    // 1) Update UI immediately
     setCurrentUser(updatedUser);
+
+    // 2) Send to backend
+    const payload = {
+      first_name: updatedUser.first_name,
+      last_name: updatedUser.last_name,
+      email: updatedUser.email,
+      major: updatedUser.major,
+      skills: updatedUser.skills ?? [],
+      interests: updatedUser.interests ?? [],
+      availability: updatedUser.availability,
+      preferred_contact_method: updatedUser.preferred_contact_method,
+      active_project_notifications: updatedUser.active_project_notifications,
+      project_expiration_notifications: updatedUser.project_expiration_notifications,
+      weekly_update_notifications: updatedUser.weekly_update_notifications,
+    };
+
+    const res = await fetch('/profile_management/update_profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      console.error('Failed to save profile');
+    }
+
+    // 3) Best practice: if backend returns updated user, replace local state
+    // const data = await res.json();
+    // setCurrentUser({ ...data.user, createdAt: new Date(data.user.createdAt) });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
@@ -254,30 +297,103 @@ function App() {
     setProjects(projects.map(p => p.id === projectId ? { ...p, ...updates } : p));
   };
 
-  const deleteProject = (projectId: string) => {
-    setProjects(projects.filter(p => p.id !== projectId));
-    setReports(reports.filter(r => r.projectId !== projectId));
+  const deleteProject = async (projectId: string) => {
+    try {
+      const res = await fetch('/project_management/delete_project', {
+        method: 'POST',
+        credentials: 'include', // 🔴 IMPORTANT for Django auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: Number(projectId),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        alert(data?.error || 'Failed to delete project.');
+        return;
+      }
+
+      // ✅ update local state after successful backend delete
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      setReports(prev => prev.filter(r => r.projectId !== projectId));
+
+    } catch (e) {
+      console.error('Failed to delete project:', e);
+      alert('Failed to delete project.');
+    }
   };
 
-  const reportProject = (projectId: string, reason: string) => {
+  const reportProject = async (
+    projectId: string,
+    reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
+    description = ''
+  ) => {
     if (!currentUser) return;
 
+    try {
+      const res = await fetch('/project_management/report_project', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_id: Number(projectId),
+          reason,
+          description,
+        }),
+      });
 
-    
-    const newReport: Report = {
-      id: Date.now().toString(),
-      projectId,
-      reportedBy: currentUser.email,
-      reason,
-      createdAt: new Date(),
-    };
-    setReports([...reports, newReport]);
-    alert('Report submitted. Administrators will review it shortly.');
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        alert(data?.error || 'Failed to submit report.');
+        return;
+      }
+
+      alert('Report submitted. Administrators will review it shortly.');
+    } catch (e) {
+      console.error('Failed to submit report:', e);
+      alert('Failed to submit report.');
+    }
   };
 
-  const restrictUser = (userId: string) => {
-    // In a real app, this would disable the user's account
-    alert(`User ${userId} has been restricted from posting.`);
+  const fetchReports = async () => {
+    try {
+      const res = await fetch('/project_management/list_reports', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        console.error('Failed to fetch reports:', data);
+        return;
+      }
+
+      const mapped: Report[] = (data.reports ?? []).map((r: any) => ({
+        id: String(r.id),
+        projectId: String(r.project_id),
+        projectTitle: r.project_title ?? '',
+        reportedBy: r.reporter_username ?? '',
+        reason: r.reason ?? '',
+        description: r.description ?? '',
+        createdAt: new Date(r.created_at),
+      }));
+
+      setReports(mapped);
+    } catch (e) {
+      console.error('Failed to fetch reports:', e);
+    }
   };
 
   if (!currentUser) {
@@ -285,7 +401,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
-        <Route path="*" element={<HomePage onGetStarted={() => navigate('/login')} />} />
+        <Route
+          path="*"
+          element={
+            <HomePage
+              onGetStarted={() => navigate('/create-account')}
+              onLogin={() => navigate('/login')}
+            />
+          }
+        />
       </Routes>
     );
   }
@@ -299,8 +423,6 @@ function App() {
         users={users}
         onLogout={handleLogout}
         onDeleteProject={deleteProject}
-        onRestrictUser={restrictUser}
-        onUpdateProject={updateProject}
       />
     );
   }

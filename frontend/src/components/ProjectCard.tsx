@@ -10,7 +10,11 @@ interface ProjectCardProps {
   isOwner: boolean;
   onEdit: (updates: Partial<Project>) => void;
   onDelete: () => void;
-  onReport: (projectId: string, reason: string) => void;
+  onReport: (
+    projectId: string,
+    reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
+    description?: string
+  ) => void;
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
   onJoinProject: (projectId: string) => Promise<boolean>;
 }
@@ -20,14 +24,14 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailedProject, setDetailedProject] = useState<Project | null>(null);
-  const [reportReason, setReportReason] = useState('');
+  const [reportCategory, setReportCategory] = useState<'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other'>('other');
+  const [reportDescription, setReportDescription] = useState('');
 
   const handleReport = () => {
-    if (reportReason.trim()) {
-      onReport(project.id, reportReason);
-      setShowReportModal(false);
-      setReportReason('');
-    }
+    onReport(project.id, reportCategory, reportDescription);
+    setShowReportModal(false);
+    setReportCategory('other');
+    setReportDescription('');
   };
 
   const formatDate = (date: Date) => {
@@ -196,24 +200,49 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
 
       {/* Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-blue-50 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Report Project</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Please explain why you're reporting this project. Administrators will review your report.
+              Select a reason and optionally add more details. Administrators will review your report.
             </p>
+
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reason
+            </label>
+            <select
+              value={reportCategory}
+              onChange={(e) =>
+                setReportCategory(
+                  e.target.value as 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other'
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+            >
+              <option value="spam">Spam</option>
+              <option value="inappropriate">Inappropriate</option>
+              <option value="misleading">Misleading</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Additional details (optional)
+            </label>
             <textarea
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              placeholder="Reason for reporting..."
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              placeholder="Add more detail if needed..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
               rows={4}
             />
+
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowReportModal(false);
-                  setReportReason('');
+                  setReportCategory('other');
+                  setReportDescription('');
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
@@ -221,8 +250,7 @@ export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, o
               </button>
               <button
                 onClick={handleReport}
-                disabled={!reportReason.trim()}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Submit Report
               </button>

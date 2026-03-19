@@ -1,10 +1,11 @@
+from .models import CollaboUser
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, get_user_model
+from django.core.validators import validate_email
 from . import utilities
 import json
 
@@ -27,7 +28,8 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
     try:
         validate_password(password)
-        _ = User.objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
+        validate_email(email)
+        _ = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
     except IntegrityError:
@@ -47,9 +49,34 @@ def login_user(request: HttpRequest) -> HttpResponse:
     email = json_body.get("email") or ""
     password: str = json_body.get("password") or ""
 
-    if (user := authenticate(request, username=email, password=password)) is not None:
+    try:
+        username = CollaboUser.objects.get(
+            email=email
+        ).username
+    except Exception:
+        return JsonResponse({"success": False, "error": "Invalid Logic Credentials"}, status=400)
+
+    if (user := authenticate(request, username=username, password=password)) is not None:
         login(request, user)
-        return JsonResponse({"success": True, "redirect_url": POST_LOGIN_PAGE_URL})
+        
+        return JsonResponse({
+            "success": True,
+            "redirect_url": POST_LOGIN_PAGE_URL,
+            "id": user.id, # pyright: ignore
+            "first_name": user.first_name, # pyright: ignore
+            "last_name": user.last_name, # pyright: ignore
+            "username": user.username, # pyright: ignore
+            "email": user.email, # pyright: ignore
+            "major": user.major, # pyright: ignore
+            "skills": user.skills, # pyright: ignore
+            "interests": user.interests, # pyright: ignore
+            "availability": user.availability, # pyright: ignore
+            "preferred_contact_method": user.preferred_contact_method, # pyright: ignore
+            "active_project_notifications": user.active_project_notifications, # pyright: ignore
+            "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
+            "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "is_staff": user.is_staff
+        })
 
     return JsonResponse(
         {"success": False, "error": "Invalid Login Credentials"}, status=400

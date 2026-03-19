@@ -1,3 +1,4 @@
 from django.contrib import admin
+from .models import CollaboUser
 
-# Register your models here.
+admin.site.register(CollaboUser)

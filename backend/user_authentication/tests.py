@@ -8,15 +8,15 @@ FAILURE: int = 400
 class AuthenticationTests(TestCase):
     def test_user_registration(self):
         testcases = [
-            ("xaj3@case.edu", "Pswd123!", SUCCESS),
-            ("jerk@cwru.edu", "ValidPswd1", FAILURE),
-            ("xaj3@case.edu", "RepeatRegister2", FAILURE),
-            ("insecure-student@case.edu", "ugh", FAILURE),
-            ("@case.edu", "theSchool", FAILURE),
+            ("Xander", "Jhaveri", "xaj3@case.edu", "Pswd123!", SUCCESS),
+            ("Jerk", "Person", "jerk@cwru.edu", "ValidPswd1", FAILURE),
+            ("Xander", "Two", "xaj3@case.edu", "RepeatRegister2", FAILURE),
+            ("Insecure", "Student", "insecure-student@case.edu", "ugh", FAILURE),
+            ("Nobody", "Nobody", "@case.edu", "theSchool", FAILURE),
         ]
 
-        for (email, password, expected) in testcases:
-            json_data = {"email": email, "password": password}
+        for (first_name, last_name, email, password, expected) in testcases:
+            json_data = {"first_name": first_name, "last_name": last_name, "email": email, "password": password}
 
             response = self.client.post(
                 path=reverse("register_user"),
@@ -52,9 +52,9 @@ class AuthenticationTests(TestCase):
 
     def test_user_login(self):
         db_data = [
-            ("xaj3@case.edu", "Password1"),
-            ("als8@case.edu", "Password1"),
-            ("threat@cwru.edu", "Password1")
+            ("Xander", "Jhaveri", "xaj3@case.edu", "Password1"),
+            ("AAA", "SSS","als8@case.edu", "Password1"),
+            ("Mean", "Person", "threat@cwru.edu", "Password1")
         ]
 
         testcases = [
@@ -64,8 +64,8 @@ class AuthenticationTests(TestCase):
             ("xaj4@case.edu", "Password1", FAILURE),
         ]
 
-        for (email, password) in db_data:
-            json_data = {"email": email, "password": password}
+        for (first_name, last_name, email, password) in db_data:
+            json_data = {"first_name": first_name, "last_name": last_name, "email": email, "password": password}
 
             _ = self.client.post(
                 path=reverse("register_user"),
