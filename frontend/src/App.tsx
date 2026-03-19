@@ -320,7 +320,7 @@ function App() {
     if (!currentUser) return;
 
     try {
-      const res = await fetch('/project_management/report_project', {
+      const res = await fetch('/project_management/report_project/', {
         method: 'POST',
         credentials: 'include',
         headers: {
