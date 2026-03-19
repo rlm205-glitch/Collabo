@@ -177,7 +177,7 @@ function App() {
       last_name: data.last_name,
       username: data.username,
       email: data.email,
-      role: 'student',
+      role: data.is_staff ? 'admin' : 'student',
       major: data.major,
       skills: data.skills ?? [],
       interests: data.interests ?? [],
