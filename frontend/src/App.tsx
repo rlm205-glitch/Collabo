@@ -148,9 +148,13 @@ function App() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => {       
     if (currentUser) {
       fetchProjects();
+
+      if (currentUser.role === 'admin') {                   //if user is an admin we will always fetch projects which will be stored in reports
+        fetchReports();
+      }
     }
   }, [currentUser]);
 
