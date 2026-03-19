@@ -208,16 +208,8 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-
-    const name = `${firstName} ${lastName}`;
-    setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'student',
-      createdAt: new Date(),
-    });
-    navigate('/');
+    
+    navigate('/login');
     return null;
   };
 
