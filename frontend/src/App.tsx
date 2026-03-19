@@ -339,6 +339,40 @@ function App() {
     alert(`User ${userId} has been restricted from posting.`);
   };
 
+  const fetchReports = async () => {
+    try {
+      const res = await fetch('/project_management/list_reports', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        console.error('Failed to fetch reports:', data);
+        return;
+      }
+
+      const mapped: Report[] = (data.reports ?? []).map((r: any) => ({
+        id: String(r.id),
+        projectId: String(r.project_id),
+        projectTitle: r.project_title ?? '',
+        reportedBy: r.reporter_username ?? '',
+        reason: r.reason ?? '',
+        description: r.description ?? '',
+        createdAt: new Date(r.created_at),
+      }));
+
+      setReports(mapped);
+    } catch (e) {
+      console.error('Failed to fetch reports:', e);
+    }
+  };
+
   if (!currentUser) {
     return (
       <Routes>
