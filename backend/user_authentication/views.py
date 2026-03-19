@@ -4,7 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import get_user_model, login, authenticate
+from django.contrib.auth import login, authenticate, get_user_model
+from django.core.validators import validate_email
 from . import utilities
 import json
 
@@ -27,6 +28,7 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
     try:
         validate_password(password)
+        validate_email(email)
         _ = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
     except ValidationError:
         return HttpResponseBadRequest(b"Invalid password")
@@ -73,6 +75,7 @@ def login_user(request: HttpRequest) -> HttpResponse:
             "active_project_notifications": user.active_project_notifications, # pyright: ignore
             "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
             "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "is_staff": user.is_staff
         })
 
     return JsonResponse(
