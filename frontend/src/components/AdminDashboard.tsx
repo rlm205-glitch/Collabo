@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { User, Project, Report } from '../App';
-import { Shield, LogOut, AlertTriangle, Trash2, Eye, EyeOff, Users } from 'lucide-react';
+import { Shield, LogOut, AlertTriangle, Trash2, Users } from 'lucide-react';
 
 interface AdminDashboardProps {
   currentUser: User;
