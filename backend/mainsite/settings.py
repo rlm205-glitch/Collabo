@@ -15,6 +15,7 @@ from pathlib import Path
 import dj_database_url
 from django.template.context_processors import static
 from environ import Env
+
 env = Env()
 env.read_env()
 ENVIRONMENT = env("ENVIRONMENT", default="production")

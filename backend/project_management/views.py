@@ -1,9 +1,9 @@
 import json
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.forms.models import model_to_dict
-from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseForbidden
 from django.contrib.auth.models import AnonymousUser, User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, authenticate
@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 
-from .join_request import create_join_request, get_notification_recipients, send_join_request_email, \
+from .join_request import create_join_request, get_notification_recipient, send_join_request_email, \
     send_join_decision_email
 from .models import Project, Join_Request, Report
 from django.core.mail import send_mail
@@ -81,7 +81,7 @@ def join_project(request: HttpRequest) -> HttpResponse:
 
         join_request, created = create_join_request(project, request.user, message)
         if created:
-            recipients = get_notification_recipients(project, request.user)
+            recipients = get_notification_recipient(project, request.user)
             print("recipients: ", recipients)
             send_join_request_email(project, request.user, message, recipients)
 
@@ -140,8 +140,8 @@ def decide_join_request(request: HttpRequest) -> HttpResponse:
         jr = Join_Request.objects.select_related("project", "requester").get(id=join_request_id)
         project = jr.project
 
-        #project members can decide
-        if not project.members.filter(id=request.user.id).exists():
+        #owner can decide
+        if request.user.id != project.author_id:
             return HttpResponseForbidden(b"Permission denied")
 
         #only decide pending requests

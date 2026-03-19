@@ -16,12 +16,19 @@ def create_join_request(project: Project, user: User, message: str )-> Tuple[Joi
         defaults={"message": message},   #not a lookup, only set when creating
     )
 
-def get_notification_recipients(project: Project, requester: User)-> List[str]:
+def get_notification_recipient(project: Project, requester: User)-> List[str]:
     """Returns a list of emails of all the recipients of the join notification. As long as they're not the requester's email."""
     requester_email = requester.email or ""
-    recipients = project.members.exclude(email="").values_list("email", flat=True)
+    try:
+        owner = User.objects.get(id=project.author_id)
+    except User.DoesNotExist:
+        return []
 
-    return sorted({recipient for recipient in recipients if recipient and recipient !=requester_email})
+    owner_email = owner.email or ""
+    if owner_email and owner_email != requester_email:
+        return [owner_email]
+
+    return []
 
 def send_join_request_email(project: Project, requester: User, message: str, recipients:List[str]) -> None:
     if not recipients:
@@ -38,14 +45,12 @@ def send_join_request_email(project: Project, requester: User, message: str, rec
     send_mail(
         subject=subject,
         message=body,
-        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@cwru-collab.com"),
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
         recipient_list=recipients,
         fail_silently=False,
     )
 
 def send_join_decision_email(project: Project, requester: User, decision:str, reply_message: str="") -> None:
-    if not requester:
-        return
     user_display = requester.get_full_name() or requester.username
     subject = f"Join Request Update: {project.title}"
     if decision == "approved":
@@ -60,10 +65,37 @@ def send_join_decision_email(project: Project, requester: User, decision:str, re
             f"Your request to join '{project.title}' has been rejected.\n\n"
             f"{reply_message or ''}"
         )
-    send_mail(
-        subject=subject,
-        message=body,
-        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@cwru-collab.com"),
-        recipient_list=[requester.email],
-        fail_silently=False,
-    )
+    if requester.email:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
+            recipient_list=[requester.email],
+            fail_silently=False,
+        )
+
+    if decision == "approved":
+        try:
+            owner = User.objects.get(id=project.author_id)
+            owner_email = owner.email or ""
+        except User.DoesNotExist:
+            owner_email = ""
+
+        member_emails = []
+        for member in project.members.all():
+            if not member.email:
+                continue
+            if member.email == requester.email:
+                continue
+            if owner_email and member.email == owner_email:
+                continue
+            member_emails.append(member.email)
+
+        if member_emails:
+            send_mail(
+                subject=f"New Member Joined: {project.title}",
+                message=f"{user_display} has been added to {project.title}.\n\n{reply_message or ''}",
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
+                recipient_list=member_emails,
+                fail_silently=False,
+            )
