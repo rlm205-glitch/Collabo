@@ -288,18 +288,28 @@ function App() {
 
   const deleteProject = async (projectId: string) => {
     try {
-      const res = await fetch('/project_management/delete_project/', {
+      const res = await fetch('/project_management/delete_project', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Number(projectId) }),
+        credentials: 'include', // 🔴 IMPORTANT for Django auth
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: Number(projectId),
+        }),
       });
+
       const data = await res.json();
-      if (data.success) {
-        setProjects(projects.filter(p => p.id !== projectId));
-        setReports(reports.filter(r => r.projectId !== projectId));
-      } else {
-        alert(data.error || 'Failed to delete project.');
+
+      if (!res.ok || !data?.success) {
+        alert(data?.error || 'Failed to delete project.');
+        return;
       }
+
+      // ✅ update local state after successful backend delete
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      setReports(prev => prev.filter(r => r.projectId !== projectId));
+
     } catch (e) {
       console.error('Failed to delete project:', e);
       alert('Failed to delete project.');
