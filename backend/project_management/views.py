@@ -86,6 +86,7 @@ def join_project(request: HttpRequest) -> HttpResponse:
         join_request, created = create_join_request(project, request.user, message)
         if created:
             recipients = get_notification_recipients(project, request.user)
+            print("recipients: ", recipients)
             send_join_request_email(project, request.user, message, recipients)
 
         return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})

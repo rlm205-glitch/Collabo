@@ -130,16 +130,29 @@ function App() {
 
   const joinProject = async (projectId: string): Promise<boolean> => {
     try {
-      const res = await fetch('/project_management/join_project/', {
+        const res = await fetch('/project_management/join_project/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Number(projectId) }),
-      });
-      const data = await res.json();
-      return data.success;
+        // If frontend and backend are on different ports/domains, you MUST include this:
+        credentials: 'include',
+        body: JSON.stringify({
+            project_id: Number(projectId),
+            message: "Hey I'd like to join this project!" // or pass from UI
+            }),
+        });
+
+        // If backend returns a 400 with plain text, res.json() will throw.
+        if (!res.ok) {
+            const text = await res.text();
+            console.error('Join failed:', res.status, text);
+            return false;
+        }
+
+        const data = await res.json();
+        return !!data.success;
     } catch (e) {
-      console.error('Failed to join project:', e);
-      return false;
+        console.error('Failed to join project:', e);
+        return false;
     }
   };
 

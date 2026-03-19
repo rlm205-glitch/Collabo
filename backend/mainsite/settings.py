@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+import dj_database_url
+from django.template.context_processors import static
+from environ import Env
+env = Env()
+env.read_env()
+ENVIRONMENT = env("ENVIRONMENT", default="production")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_BACKEND_DIR = Path(__file__).resolve().parent.parent
 BASE_PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -21,10 +28,13 @@ BASE_PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-9@u#*96ft400=b3l+g00tams)jxh(a$m0r1ff^2l$%4e7l^=&y"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if ENVIRONMENT == "development":
+    DEBUG = True
+else:
+    DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -48,6 +58,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -86,6 +97,10 @@ DATABASES = {
     }
 }
 
+POSTGRES_LOCALLY = False
+if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
+    DATABASES["default"] = dj_database_url.parse(env("DATABASE_URL"))
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -119,6 +134,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_PROJECT_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_PROJECT_DIR / "static"]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
