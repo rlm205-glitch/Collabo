@@ -74,7 +74,7 @@ function App() {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          data.condensed_projects.map((p: any) => ({
+          const mapped: Project[] = (data.projects ?? []).map((p: any) => ({
             id: String(p.id),
             title: p.title,
             description: p.short_description || '',
@@ -148,7 +148,7 @@ function App() {
     }
   };
 
-  useEffect(() => {       
+  useEffect(() => {
     if (currentUser) {
       fetchProjects();
 
@@ -314,40 +314,40 @@ function App() {
     }
   };
 
- const reportProject = async (
-  projectId: string,
-  reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
-  description = ''
-) => {
-  if (!currentUser) return;
+  const reportProject = async (
+    projectId: string,
+    reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
+    description = ''
+  ) => {
+    if (!currentUser) return;
 
-  try {
-    const res = await fetch('/project_management/report_project', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        project_id: Number(projectId),
-        reason,
-        description,
-      }),
-    });
+    try {
+      const res = await fetch('/project_management/report_project', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_id: Number(projectId),
+          reason,
+          description,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok || !data?.success) {
-      alert(data?.error || 'Failed to submit report.');
-      return;
+      if (!res.ok || !data?.success) {
+        alert(data?.error || 'Failed to submit report.');
+        return;
+      }
+
+      alert('Report submitted. Administrators will review it shortly.');
+    } catch (e) {
+      console.error('Failed to submit report:', e);
+      alert('Failed to submit report.');
     }
-
-    alert('Report submitted. Administrators will review it shortly.');
-  } catch (e) {
-    console.error('Failed to submit report:', e);
-    alert('Failed to submit report.');
-  }
-};
+  };
 
   const fetchReports = async () => {
     try {
