@@ -50,8 +50,10 @@ export interface Project {
 export interface Report {
   id: string;
   projectId: string;
+  projectTitle: string;
   reportedBy: string;
   reason: string;
+  description: string;
   createdAt: Date;
 }
 
