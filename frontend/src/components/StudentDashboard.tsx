@@ -62,31 +62,58 @@ export function StudentDashboard({
   });
 
   // --- Best Match scoring + sorting ---
+
   const normalize = (s: string) => s.toLowerCase().trim();
 
-  const mySkills = (currentUser.skills ?? []).map(normalize);
-  const myInterests = (currentUser.interests ?? []).map(normalize);
+  const mySkills = (currentUser.skills ?? []).map(normalize);             // get skills from current user
+  const myInterests = (currentUser.interests ?? []).map(normalize);       // get interests
 
-  const scoreProject = (project: Project) => {
+  const scoreProject = (project: Project) => {                            // takes one project and calculates how good a match it is for the user
     let score = 0;
 
-    // +1 if any preferred skill matches my skills
     const projectSkills = (project.preferredSkills ?? []).map(normalize);
-    if (projectSkills.some(s => mySkills.includes(s))) score += 1;
 
-    // +1 if any of my interests appears in title/description
-    const text = normalize(project.title + ' ' + project.description);
-    if (myInterests.some(i => i && text.includes(i))) score += 1;
+    /*
+      +3 for EACH matching skill (strong signal)
+      - counts how many skills overlap, not just "any match"
+    */
+    const matchingSkills = projectSkills.filter(s => mySkills.includes(s)).length;
+    score += matchingSkills * 3;
+
+    const title = normalize(project.title ?? '');
+    const description = normalize(project.description ?? '');
+
+    /*
+      +2 if interest appears in title (stronger signal)
+      +1 if interest appears in description (weaker signal)
+    */
+    for (const i of myInterests) {
+      if (!i) continue;
+
+      if (title.includes(i)) {
+        score += 2;
+      } else if (description.includes(i)) {
+        score += 1;
+      }
+    }
 
     return score;
   };
 
-  const displayedProjects =
-    sortOption === 'best'
-      ? [...filteredProjects].sort((a, b) => scoreProject(b) - scoreProject(a))
+  const displayedProjects =                                             // if sortOption == 'best' then displayedProjects will equal filteredProjects with sorting applied, else just normal filteredProjects
+    sortOption === 'best'                                               // displayedProjects takes all the filtered projects and applies the sorting so displayedProjects is a list of the sorted projects
+      ? [...filteredProjects].sort((a, b) => {
+        const scoreDiff = scoreProject(b) - scoreProject(a);
+
+        // higher score comes first
+        if (scoreDiff !== 0) return scoreDiff;
+
+        // tie-breaker: newer projects first (prevents random ordering)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      })
       : filteredProjects;
 
-  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);
+  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);          //finds projects created by currentUser
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -95,7 +122,9 @@ export function StudentDashboard({
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">CWRU Collaboration Platform</h1>
-            <p className="text-sm text-gray-600">Welcome back, {currentUser.name}</p>
+            <p className="text-sm text-gray-600">
+              Welcome back, {currentUser.first_name} {currentUser.last_name}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button

@@ -9,6 +9,7 @@ export default defineConfig({
     proxy: {
       '/authentication': 'http://localhost:8000',
       '/project_management': 'http://localhost:8000',
+      '/profile_management': 'http://localhost:8000',
     },
   },
 })

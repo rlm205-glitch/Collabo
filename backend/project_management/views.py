@@ -1,5 +1,3 @@
-from codecs import ignore_errors
-from ctypes import cast
 import json
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -39,9 +37,11 @@ def create_project(request: HttpRequest) -> HttpResponse:
         project = Project.objects.create(
             title=json_body.get("title", ""),
             short_description=json_body.get("short_description", ""),
-            author=request.user.get_username(),
+            author=request.user.username,
+            author_id=request.user.id,
             extended_description=json_body.get("extended_description", ""),
 
+            preferred_skills=json_body.get("preferred_skills", []),
             project_type=json_body.get("project_type"),
             workload_per_week=json_body.get("workload_per_week"),
             preferred_contact_method=json_body.get("preferred_contact_method"),
@@ -194,7 +194,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 for filter_item in filters:
                     if isinstance(filter_item, dict):
                         projects = projects.filter(**filter_item)
-        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "project_type", "preferred_skills"))
+        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "author_id", "project_type", "workload_per_week", "preferred_skills"))
 
         return JsonResponse({ "success": True,
             "condensed_projects": condensed_project_data,
@@ -225,12 +225,15 @@ def get_project(request: HttpRequest) -> HttpResponse:
             "title": project.title,
             "short_description": project.short_description,
             "author": project.author,
+            "author_id": project.author_id,
             "extended_description": project.extended_description,
             "preferred_skills": project.preferred_skills,
             "project_type": project.project_type,
             "workload_per_week": project.workload_per_week,
             "preferred_contact_method": project.preferred_contact_method,
             "contact_information": project.contact_information,
+            "creation_time": project.creation_time,
+            "updated_time": project.updated_time,
             "members": [user.id for user in project.members.all()]
         }
 
@@ -238,5 +241,26 @@ def get_project(request: HttpRequest) -> HttpResponse:
     except Exception:
         return JsonResponse({"success": False, "error": "Failed to get project"})
 
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def delete_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body: dict[str, str] = dict(json.loads(request.body))
+
+    try:
+        project = Project.objects.get(
+            id=json_body.get("id", "")
+        )
+
+        if project.author == request.user.get_username():
+            project.delete()
+        else:
+            return JsonResponse({"success": False, "error": "Cannot delete a project that you did not create"})
+
+        return JsonResponse({"success": True})
+    except Exception:
+        return JsonResponse({"success": False, "error": "Failed to delete project"})
 
 
