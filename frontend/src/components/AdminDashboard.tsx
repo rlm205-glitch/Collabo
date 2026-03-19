@@ -9,8 +9,6 @@ interface AdminDashboardProps {
   users: User[];
   onLogout: () => void;
   onDeleteProject: (projectId: string) => void;
-  onRestrictUser: (userId: string) => void;
-  onUpdateProject: (projectId: string, updates: Partial<Project>) => void;
 }
 
 export function AdminDashboard({
@@ -20,8 +18,6 @@ export function AdminDashboard({
   users,
   onLogout,
   onDeleteProject,
-  onRestrictUser,
-  onUpdateProject,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'projects' | 'reports' | 'users'>('reports');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -34,20 +30,9 @@ export function AdminDashboard({
     return reports.filter(r => r.projectId === projectId);
   };
 
-  const handleHideProject = (projectId: string) => {
-    onUpdateProject(projectId, { isActive: false });
-    alert('Project has been hidden from students.');
-  };
-
   const handleDeleteProject = (projectId: string) => {
     if (confirm('Are you sure you want to permanently delete this project?')) {
       onDeleteProject(projectId);
-    }
-  };
-
-  const handleRestrictUser = (userId: string) => {
-    if (confirm('Are you sure you want to restrict this user from posting?')) {
-      onRestrictUser(userId);
     }
   };
 
@@ -188,17 +173,6 @@ export function AdminDashboard({
                               </div>
                             </div>
                             <div className="flex items-center gap-2 ml-4">
-                              {project.isActive ? (
-                                <button
-                                  onClick={() => handleHideProject(project.id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                                >
-                                  <EyeOff className="w-4 h-4" />
-                                  <span>Hide</span>
-                                </button>
-                              ) : (
-                                <span className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg">Hidden</span>
-                              )}
                               <button
                                 onClick={() => handleDeleteProject(project.id)}
                                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -268,23 +242,6 @@ export function AdminDashboard({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 ml-4">
-                            {project.isActive ? (
-                              <button
-                                onClick={() => handleHideProject(project.id)}
-                                className="flex items-center gap-2 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
-                              >
-                                <EyeOff className="w-4 h-4" />
-                                <span>Hide</span>
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => onUpdateProject(project.id, { isActive: true })}
-                                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                              >
-                                <Eye className="w-4 h-4" />
-                                <span>Show</span>
-                              </button>
-                            )}
                             <button
                               onClick={() => handleDeleteProject(project.id)}
                               className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
@@ -328,14 +285,6 @@ export function AdminDashboard({
                             <p><strong>Joined:</strong> {formatDate(user.createdAt)}</p>
                           </div>
                         </div>
-                        {user.role === 'student' && (
-                          <button
-                            onClick={() => handleRestrictUser(user.id)}
-                            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
-                          >
-                            Restrict User
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}
