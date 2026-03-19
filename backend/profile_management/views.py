@@ -77,6 +77,7 @@ def get_self_profile(request: HttpRequest) -> HttpResponse:
         res["active_project_notifications"] = user.active_project_notifications
         res["project_expiration_notifications"] = user.project_expiration_notifications
         res["weekly_update_notifications"] = user.weekly_update_notifications
+        res["is_staff"] = user.is_staff
 
     except Exception:
         return JsonResponse({"success": False, "error": "Failed to get profile"})
@@ -114,6 +115,7 @@ def get_profile(request: HttpRequest) -> HttpResponse:
         res["interests"] = user.interests
         res["availability"] = user.availability
         res["preferred_contact_method"] = user.preferred_contact_method
+        res["is_staff"] = user.is_staff
 
     except Exception:
         return JsonResponse({"success": False, "error": "Failed to update user profile"})

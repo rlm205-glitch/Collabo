@@ -50,8 +50,10 @@ export interface Project {
 export interface Report {
   id: string;
   projectId: string;
+  projectTitle: string;
   reportedBy: string;
   reason: string;
+  description: string;
   createdAt: Date;
 }
 
@@ -149,6 +151,10 @@ function App() {
   useEffect(() => {
     if (currentUser) {
       fetchProjects();
+
+      if (currentUser.role === 'admin') {                   //if user is an admin we will always fetch projects which will be stored in reports
+        fetchReports();
+      }
     }
   }, [currentUser]);
 
@@ -171,7 +177,7 @@ function App() {
       last_name: data.last_name,
       username: data.username,
       email: data.email,
-      role: 'student',
+      role: data.is_staff ? 'admin' : 'student',
       major: data.major,
       skills: data.skills ?? [],
       interests: data.interests ?? [],
@@ -203,15 +209,7 @@ function App() {
       return text || 'Failed to create account';
     }
 
-    const name = `${firstName} ${lastName}`;
-    setCurrentUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      role: 'student',
-      createdAt: new Date(),
-    });
-    navigate('/');
+    navigate('/login');
     return null;
   };
 
@@ -288,11 +286,19 @@ function App() {
 
   const deleteProject = async (projectId: string) => {
     try {
-      const res = await fetch('/project_management/delete_project/', {
+      const isAdmin = currentUser?.role === 'admin';
+
+      const endpoint = isAdmin
+        ? '/project_management/admin_delete_project/'
+        : '/project_management/delete_project/';
+
+      const res = await fetch(endpoint, {
         method: 'POST',
+        ...(isAdmin && { credentials: 'include' }), // only add this for admin
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: Number(projectId) }),
       });
+
       const data = await res.json();
       if (data.success) {
         setProjects(projects.filter(p => p.id !== projectId));
@@ -306,25 +312,73 @@ function App() {
     }
   };
 
-  const reportProject = (projectId: string, reason: string) => {
+  const reportProject = async (
+    projectId: string,
+    reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
+    description = ''
+  ) => {
     if (!currentUser) return;
 
+    try {
+      const res = await fetch('/project_management/report_project/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_id: Number(projectId),
+          reason,
+          description,
+        }),
+      });
 
+      const data = await res.json();
 
-    const newReport: Report = {
-      id: Date.now().toString(),
-      projectId,
-      reportedBy: currentUser.email,
-      reason,
-      createdAt: new Date(),
-    };
-    setReports([...reports, newReport]);
-    alert('Report submitted. Administrators will review it shortly.');
+      if (!res.ok || !data?.success) {
+        alert(data?.error || 'Failed to submit report.');
+        return;
+      }
+
+      alert('Report submitted. Administrators will review it shortly.');
+    } catch (e) {
+      console.error('Failed to submit report:', e);
+      alert('Failed to submit report.');
+    }
   };
 
-  const restrictUser = (userId: string) => {
-    // In a real app, this would disable the user's account
-    alert(`User ${userId} has been restricted from posting.`);
+  const fetchReports = async () => {
+    try {
+      const res = await fetch('/project_management/list_reports/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        console.error('Failed to fetch reports:', data);
+        return;
+      }
+
+      const mapped: Report[] = (data.reports ?? []).map((r: any) => ({
+        id: String(r.id),
+        projectId: String(r.project_id),
+        projectTitle: r.project_title ?? '',
+        reportedBy: r.reporter_username ?? '',
+        reason: r.reason ?? '',
+        description: r.description ?? '',
+        createdAt: new Date(r.created_at),
+      }));
+
+      setReports(mapped);
+    } catch (e) {
+      console.error('Failed to fetch reports:', e);
+    }
   };
 
   if (!currentUser) {
@@ -354,8 +408,6 @@ function App() {
         users={users}
         onLogout={handleLogout}
         onDeleteProject={deleteProject}
-        onRestrictUser={restrictUser}
-        onUpdateProject={updateProject}
       />
     );
   }

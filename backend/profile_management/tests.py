@@ -9,16 +9,17 @@ from django.contrib.auth import get_user, get_user_model
 class ProfileTests(TestCase):
     def test_update_and_get_profiles(self):
         test_users = [
-            ("xaj3@case.edu", "TestPswd123!", "Xander", "Jhaveri", "xaj3@case.edu", "Computer Science", ["Python", "Rust"], ["ML", "Software Engineering"], "Wednesdays"),
-            ("jxb3@case.edu", "TestPswd123!", "Joe", "Bo", "jxb3@case.edu", "Data Science", ["Python", "Stats"], ["ML", "Data"], "Wednesdays"),
-            ("ahh7@case.edu", "TestPswd123!", "Allan", "Human", "ahh7@case.edu", "Data Science", ["Python", "Stats"], ["ML", "Data"], "Wednesdays")
+            ("xaj3@case.edu", "TestPswd123!", "Xander", "Jhaveri", "xaj3@case.edu", "Computer Science", ["Python", "Rust"], ["ML", "Software Engineering"], "Wednesdays", False),
+            ("jxb3@case.edu", "TestPswd123!", "Joe", "Bo", "jxb3@case.edu", "Data Science", ["Python", "Stats"], ["ML", "Data"], "Wednesdays", True),
+            ("ahh7@case.edu", "TestPswd123!", "Allan", "Human", "ahh7@case.edu", "Data Science", ["Python", "Stats"], ["ML", "Data"], "Wednesdays", False)
         ]
 
         # update_profile tests
-        for (username, password, first_name, last_name, email, major, skills, interests, availability) in test_users:
+        for (username, password, first_name, last_name, email, major, skills, interests, availability, staff) in test_users:
             get_user_model().objects.create_user(
                 username=username,
-                password=password
+                password=password,
+                is_staff=staff
             )
 
             _ = self.client.login(username=username, password=password)
@@ -44,9 +45,12 @@ class ProfileTests(TestCase):
             self.assertEqual(
                 get_user_model().objects.get(first_name=first_name).email, email
             )
+            self.assertEqual(
+                get_user_model().objects.get(first_name=first_name).is_staff, staff
+            )
 
         # get_self_profile tests
-        for (username, password, first_name, last_name, email, major, skills, interests, availability) in test_users:
+        for (username, password, first_name, last_name, email, major, skills, interests, availability, staff) in test_users:
             _ = self.client.login(username=email, password=password)
 
 

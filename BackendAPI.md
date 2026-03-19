@@ -4,174 +4,269 @@
 
 ### Create Project: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/create_project
-- Requires Login (Handled automatically by Django)
-- JSON Request Data:
+- URL: `{backend_ip}/project_management/create_project`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
 
-```
+```json
 {
-  "title": {title},
-  "short_description": {short_description},
-  "author": {author},
-  "extended_description": {extended_description},
-
-  "preferred_skills": {preferred_skills},
-  "project_type": {project_type},
-  "workload_per_week": {workload_per_week},
-  "preferred_contact_method": {preferred_contact_method},
-  "contact_information": {contact_information}
+  "title": "{title}",
+  "short_description": "{short_description}",
+  "author": "{author}",
+  "extended_description": "{extended_description}",
+  "preferred_skills": "{preferred_skills}",
+  "project_type": "{project_type}",
+  "workload_per_week": "{workload_per_week}",
+  "preferred_contact_method": "{preferred_contact_method}",
+  "contact_information": "{contact_information}"
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  "success": {bool},
-  "id": {project_id},
-  "redirect_url": {redirect_url}
+  "success": true,
+  "id": "{project_id}",
+  "redirect_url": "{redirect_url}"
 }
 ```
+
+---
 
 ### Join Project: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/join_project
-- Requires Login (Handled automatically by Django)
-- JSON Request Data:
+- URL: `{backend_ip}/project_management/join_project`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
 
-```
+```json
 {
-  "id": {project_id},
+  "id": "{project_id}"
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  "success": {bool},
-  "redirect_url": {redirect_url}
+  "success": true,
+  "redirect_url": "{redirect_url}"
 }
 ```
+
+---
 
 ### Get Project: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/get_project
-- Requires Login (Handled automatically by Django)
-- JSON Request Data:
+- URL: `{backend_ip}/project_management/get_project`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
 
-```
+```json
 {
-  "id": {project_id}
+  "id": "{project_id}"
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  "success": {boolean},
-  {
-    "id": id,
-    "title": title,
-    "short_description": short_description,
-    "author": author,
-    "extended_description": extended_description,
-    "preferred_skills": preferred_skills,
-    "project_type": project_type,
-    "workload_per_week": workload_per_week,
-    "preferred_contact_method": preferred_contact_method,
-    "contact_information": contact_information,
-    "creation_time": creation_time,
-    "updated_time": last_updated_time,
-    "members": [member user ids]
-  }
+  "success": true,
+  "id": "{id}",
+  "title": "{title}",
+  "short_description": "{short_description}",
+  "author": "{author}",
+  "extended_description": "{extended_description}",
+  "preferred_skills": "{preferred_skills}",
+  "project_type": "{project_type}",
+  "workload_per_week": "{workload_per_week}",
+  "preferred_contact_method": "{preferred_contact_method}",
+  "contact_information": "{contact_information}",
+  "creation_time": "{creation_time}",
+  "updated_time": "{last_updated_time}",
+  "members": ["{member_user_ids}"]
 }
 ```
+
+---
 
 ### List Projects: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/list_projects
-- Requires Login (Handled automatically by Django)
-- JSON Request Data:
+- URL: `{backend_ip}/project_management/list_projects`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
 
-```
+```json
 {
   "filters": {
-    "extended_description__icontains": {what extended description is filtered for},
-    "preferred_skills__contains": [{list of preferred skills that will be filtered for}]
+    "extended_description__icontains": "{filter_string}",
+    "preferred_skills__contains": ["{skill_1}", "{skill_2}"]
   }
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  success: {boolean},
-  projects: {
-    "id": id,
-    "title": title,
-    "short_description": short_description,
-    "author": author,
-    "preferred_skills": preferred_skills,
-    "project_type": project_type,
-    "workload_per_week": workload_per_week,
-  },
-  project_count: {*size of projects object*}
+  "success": true,
+  "projects": [
+    {
+      "id": "{id}",
+      "title": "{title}",
+      "short_description": "{short_description}",
+      "author": "{author}",
+      "preferred_skills": "{preferred_skills}",
+      "project_type": "{project_type}",
+      "workload_per_week": "{workload_per_week}"
+    }
+  ],
+  "project_count": "{size_of_projects_array}"
 }
 ```
+
+---
 
 ### Delete Project: Via HTTP POST with JSON data
 
-- URL: {backend ip}/project_management/delete_project
-- Requires Login (Handled automatically by Django)
-- JSON Request Data:
+- URL: `{backend_ip}/project_management/delete_project`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
 
-```
+```json
 {
-  "id": {id}
+  "id": "{project_id}"
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  success: {boolean}
+  "success": true
 }
 ```
+
+---
+
+### Report Project: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/report_project`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
+
+```json
+{
+  "project_id": "{project_id}",
+  "reason": "{reason}",
+  "description": "{description}"
+}
+```
+
+- `reason` must be one of: `"spam"`, `"inappropriate"`, `"misleading"`, `"harassment"`, `"other"`
+- `description` is optional (free-text, max 1000 chars)
+- Each user can only report a given project once
+- Returns:
+
+```json
+{
+  "success": true,
+  "report_id": "{report_id}"
+}
+```
+
+---
+
+### List Reports (Admin): Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/list_reports`
+- Requires Login + Staff (`is_staff=True`)
+- JSON Request Body:
+
+```json
+{
+  "project_id": "{project_id}"
+}
+```
+
+- `project_id` is optional — omit to list all reports
+- Returns:
+
+```json
+{
+  "success": true,
+  "reports": [
+    {
+      "id": "{id}",
+      "project_id": "{project_id}",
+      "project_title": "{project_title}",
+      "reporter_username": "{reporter_username}",
+      "reason": "{reason}",
+      "description": "{description}",
+      "created_at": "{created_at}"
+    }
+  ],
+  "report_count": "{size_of_reports_array}"
+}
+```
+
+---
+
+### Admin Delete Project (Admin): Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/admin_delete_project`
+- Requires Login + Staff (`is_staff=True`)
+- Permanently deletes any project regardless of author
+- JSON Request Body:
+
+```json
+{
+  "id": "{project_id}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true
+}
+```
+
+---
 
 ## Profile Management
 
 ### Update Profile: Via HTTP POST with JSON data
 
-- URL: {backend ip}/profile_management/update_profile
-- Requires Login (Handled automatically by Django)
-- JSON Request Data (all fields optional; omitted fields retain current values):
+- URL: `{backend_ip}/profile_management/update_profile`
+- Requires Login (handled automatically by Django)
+- JSON Request Body (all fields optional; omitted fields retain current values):
 
-```
+```json
 {
-  "first_name": {first_name},
-  "last_name": {last_name},
-  "email": {email},
-  "major": {major},
-  "skills": {skills},
-  "interests": {interests},
-  "availability": {availability},
-  "preferred_contact_method": {preferred_contact_method},
-  "active_project_notifications": {bool},
-  "project_expiration_notifications": {bool},
-  "weekly_update_notifications": {bool}
+  "first_name": "{first_name}",
+  "last_name": "{last_name}",
+  "email": "{email}",
+  "major": "{major}",
+  "skills": "{skills}",
+  "interests": "{interests}",
+  "availability": "{availability}",
+  "preferred_contact_method": "{preferred_contact_method}",
+  "active_project_notifications": true,
+  "project_expiration_notifications": true,
+  "weekly_update_notifications": true
 }
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
+```json
 {
-  "success": {bool},
-  "id": {user_id}
+  "success": true,
+  "id": "{user_id}"
 }
 ```
 
@@ -198,7 +293,8 @@
   "preferred_contact_method": {preferred_contact_method},
   "active_project_notifications": {bool},
   "project_expiration_notifications": {bool},
-  "weekly_update_notifications": {bool}
+  "weekly_update_notifications": {bool},
+  "is_staff": {bool}
 }
 ```
 
@@ -227,7 +323,8 @@
   "skills": {skills},
   "interests": {interests},
   "availability": {availability},
-  "preferred_contact_method": {preferred_contact_method}
+  "preferred_contact_method": {preferred_contact_method},
+  "is_staff": {bool}
 }
 ```
 
@@ -235,49 +332,44 @@
 
 ### Register User: Via HTTP POST with JSON data
 
-- URL: {backend ip}/user_authentication/register
-- JSON Request Data:
+- URL: `{backend_ip}/user_authentication/register`
+- JSON Request Body:
 
-```
-
+```json
 {
-  "email": {email},
-  "password": {password},
-  "first_name": {first_name},
-  "last_name": {last_name}
+  "email": "{email}",
+  "password": "{password}",
+  "first_name": "{first_name}",
+  "last_name": "{last_name}"
 }
-
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
-
+```json
 {
-  "success": {bool},
-  "redirect_url": {redirect_url}
+  "success": true,
+  "redirect_url": "{redirect_url}"
 }
-
 ```
+
+---
 
 ### Login User: Via HTTP POST with JSON data
 
-- URL: {backend ip}/user_authentication/login
-- JSON Request Data:
+- URL: `{backend_ip}/user_authentication/login`
+- JSON Request Body:
 
-```
-
+```json
 {
-  "email": {email},
-  "password": {password},
+  "email": "{email}",
+  "password": "{password}"
 }
-
 ```
 
-- Returns JSONResponse:
+- Returns:
 
-```
-
+```json
 {
   "success": {bool},
   "redirect_url": {redirect_url},
@@ -293,7 +385,7 @@
   "preferred_contact_method": {preferred_contact_method},
   "active_project_notifications": {bool},
   "project_expiration_notifications": {bool},
-  "weekly_update_notifications": {bool}
+  "weekly_update_notifications": {bool},
+  "is_staff": {bool}
 }
-
 ```
