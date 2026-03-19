@@ -74,7 +74,7 @@ function App() {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          const mapped: Project[] = (data.projects ?? []).map((p: any) => ({
+          data.condensed_projects.map((p: any) => ({
             id: String(p.id),
             title: p.title,
             description: p.short_description || '',
