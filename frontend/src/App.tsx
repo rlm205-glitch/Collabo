@@ -177,7 +177,7 @@ function App() {
       last_name: data.last_name,
       username: data.username,
       email: data.email,
-      role: 'admin',                                                                    //UNCOMMENT THIS data.is_staff ? 'admin' : 'student',
+      role: data.is_staff ? 'admin' : 'student',
       major: data.major,
       skills: data.skills ?? [],
       interests: data.interests ?? [],
@@ -314,21 +314,40 @@ function App() {
     }
   };
 
-  const reportProject = (projectId: string, reason: string) => {
-    if (!currentUser) return;
+ const reportProject = async (
+  projectId: string,
+  reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
+  description = ''
+) => {
+  if (!currentUser) return;
 
+  try {
+    const res = await fetch('/project_management/report_project', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        project_id: Number(projectId),
+        reason,
+        description,
+      }),
+    });
 
+    const data = await res.json();
 
-    const newReport: Report = {
-      id: Date.now().toString(),
-      projectId,
-      reportedBy: currentUser.email,
-      reason,
-      createdAt: new Date(),
-    };
-    setReports([...reports, newReport]);
+    if (!res.ok || !data?.success) {
+      alert(data?.error || 'Failed to submit report.');
+      return;
+    }
+
     alert('Report submitted. Administrators will review it shortly.');
-  };
+  } catch (e) {
+    console.error('Failed to submit report:', e);
+    alert('Failed to submit report.');
+  }
+};
 
   const fetchReports = async () => {
     try {
