@@ -286,11 +286,19 @@ function App() {
 
   const deleteProject = async (projectId: string) => {
     try {
-      const res = await fetch('/project_management/delete_project/', {
+      const isAdmin = currentUser?.role === 'admin';
+
+      const endpoint = isAdmin
+        ? '/project_management/admin_delete_project/'
+        : '/project_management/delete_project/';
+
+      const res = await fetch(endpoint, {
         method: 'POST',
+        ...(isAdmin && { credentials: 'include' }), // only add this for admin
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: Number(projectId) }),
       });
+
       const data = await res.json();
       if (data.success) {
         setProjects(projects.filter(p => p.id !== projectId));
@@ -341,7 +349,7 @@ function App() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch('/project_management/list_reports', {
+      const res = await fetch('/project_management/list_reports/', {
         method: 'POST',
         credentials: 'include',
         headers: {
