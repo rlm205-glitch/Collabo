@@ -148,6 +148,16 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 #This is just for the console, have to use smtp for production
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@cwru-collab.com"
+if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_HOST_USER = env("EMAIL_ADDRESS")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    DEFAULT_FROM_EMAIL = f"CollaboCWRU {env('EMAIL_ADDRESS')}"
+    ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
