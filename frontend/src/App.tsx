@@ -177,7 +177,7 @@ function App() {
       last_name: data.last_name,
       username: data.username,
       email: data.email,
-      role: data.is_staff ? 'admin' : 'student',
+      role: 'admin',                                                                    //UNCOMMENT THIS data.is_staff ? 'admin' : 'student',
       major: data.major,
       skills: data.skills ?? [],
       interests: data.interests ?? [],
@@ -330,11 +330,6 @@ function App() {
     alert('Report submitted. Administrators will review it shortly.');
   };
 
-  const restrictUser = (userId: string) => {
-    // In a real app, this would disable the user's account
-    alert(`User ${userId} has been restricted from posting.`);
-  };
-
   const fetchReports = async () => {
     try {
       const res = await fetch('/project_management/list_reports', {
@@ -396,8 +391,6 @@ function App() {
         users={users}
         onLogout={handleLogout}
         onDeleteProject={deleteProject}
-        onRestrictUser={restrictUser}
-        onUpdateProject={updateProject}
       />
     );
   }
