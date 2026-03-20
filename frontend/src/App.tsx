@@ -139,21 +139,6 @@ function App() {
     return null;
   };
 
-  const joinProject = async (projectId: string, message: string = ''): Promise<boolean> => {
-    try {
-      const res = await fetch('/project_management/join_project/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: Number(projectId), message }),
-      });
-      const data = await res.json();
-      return data.success;
-    } catch (e) {
-      console.error('Failed to join project:', e);
-      return false;
-    }
-  };
-
   useEffect(() => {
     if (currentUser) {
       fetchProjects();
