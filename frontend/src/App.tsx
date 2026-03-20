@@ -59,7 +59,7 @@ export interface Report {
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const navigate = useNavigate();
