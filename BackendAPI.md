@@ -214,6 +214,100 @@
 
 ---
 
+### Update Project: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/update_project`
+- Requires Login (handled automatically by Django)
+- Only the project author can update their own project
+- JSON Request Body (all fields optional; omitted fields retain current values):
+
+```json
+{
+  "id": "{project_id}",
+  "title": "{title}",
+  "short_description": "{short_description}",
+  "extended_description": "{extended_description}",
+  "project_type": "{project_type}",
+  "preferred_skills": ["{skill_1}", "{skill_2}"],
+  "workload_per_week": "{workload_per_week}",
+  "preferred_contact_method": "{preferred_contact_method}",
+  "contact_information": "{contact_information}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### List Join Requests: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/list_join_requests`
+- Requires Login (handled automatically by Django)
+- Only project members can view join requests for their project
+- JSON Request Body:
+
+```json
+{
+  "project_id": "{project_id}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "{join_request_id}",
+      "requester_username": "{username}",
+      "requester_email": "{email}",
+      "message": "{message}",
+      "created_at": "{created_at}",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+---
+
+### Decide Join Request (Accept/Reject): Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/decide_join_request`
+- Requires Login (handled automatically by Django)
+- Only project members can approve or reject join requests
+- JSON Request Body:
+
+```json
+{
+  "join_request_id": "{join_request_id}",
+  "decision": "{decision}",
+  "reply_message": "{reply_message}"
+}
+```
+
+- `decision` must be either `"approved"` or `"rejected"`
+- `reply_message` is optional
+- If approved, the requester is added to the project's members and notified by email
+- If rejected, the requester is notified by email
+- Returns:
+
+```json
+{
+  "success": true,
+  "status": "{approved_or_rejected}"
+}
+```
+
+---
+
 ### Admin Delete Project (Admin): Via HTTP POST with JSON data
 
 - URL: `{backend_ip}/project_management/admin_delete_project`

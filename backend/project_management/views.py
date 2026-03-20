@@ -99,7 +99,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
 
     try:
         sortkey = json_body.get("sortkey", "title")
-        projects = Project.objects.order_by(sortkey, "author")
+        projects = Project.objects.prefetch_related('members').order_by(sortkey, "author")
 
         filters = json_body.get("filters", [])
 
@@ -110,7 +110,21 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 for filter_item in filters:
                     if isinstance(filter_item, dict):
                         projects = projects.filter(**filter_item)
-        condensed_project_data = list(projects.values("id", "title", "short_description", "author", "author_id", "project_type", "workload_per_week", "preferred_skills"))
+
+        condensed_project_data = [
+            {
+                "id": p.id,
+                "title": p.title,
+                "short_description": p.short_description,
+                "author": p.author,
+                "author_id": p.author_id,
+                "project_type": p.project_type,
+                "workload_per_week": p.workload_per_week,
+                "preferred_skills": p.preferred_skills,
+                "member_ids": [m.id for m in p.members.all()],
+            }
+            for p in projects
+        ]
 
         return JsonResponse({ "success": True,
             "condensed_projects": condensed_project_data,
@@ -136,12 +150,23 @@ def get_project(request: HttpRequest) -> HttpResponse:
             id=json_body.get("id", "")
         )
 
+        from django.contrib.auth import get_user_model
+        author_first_name, author_last_name = "", ""
+        try:
+            author_user = get_user_model().objects.get(id=project.author_id)
+            author_first_name = author_user.first_name
+            author_last_name = author_user.last_name
+        except Exception:
+            pass
+
         project_data = {
             "id": project.id,
             "title": project.title,
             "short_description": project.short_description,
             "author": project.author,
             "author_id": project.author_id,
+            "author_first_name": author_first_name,
+            "author_last_name": author_last_name,
             "extended_description": project.extended_description,
             "preferred_skills": project.preferred_skills,
             "project_type": project.project_type,
@@ -266,6 +291,33 @@ def admin_delete_project(request: HttpRequest) -> HttpResponse:
     except Project.DoesNotExist:
         return JsonResponse({"success": False, "error": "Project not found"}, status=404)
 
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def update_project(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    body = json.loads(request.body)
+    project_id = body.get("id")
+
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Project not found"}, status=404)
+
+    if project.author != request.user.get_username():
+        return HttpResponseForbidden(b"Permission denied")
+
+    fields = ["title", "short_description", "extended_description", "project_type",
+              "preferred_skills", "workload_per_week", "preferred_contact_method", "contact_information"]
+    for field in fields:
+        if field in body:
+            setattr(project, field, body[field])
+
+    project.save()
+    return JsonResponse({"success": True})
+
+
 """Implement accept/reject functions"""
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
@@ -288,7 +340,10 @@ def list_join_requests(request: HttpRequest) -> HttpResponse:
     data = [
         {
             "id": jr.id,
+            "requester_id": jr.requester.id,
             "requester_username": jr.requester.username,
+            "requester_first_name": jr.requester.first_name,
+            "requester_last_name": jr.requester.last_name,
             "requester_email": jr.requester.email,
             "message": jr.message,
             "created_at": jr.created_at.isoformat(),

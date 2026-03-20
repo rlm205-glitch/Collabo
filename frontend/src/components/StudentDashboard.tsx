@@ -16,7 +16,6 @@ interface StudentDashboardProps {
   onDeleteProject: (projectId: string) => void;
   onReportProject: (projectId: string, reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other', description?: string) => void;
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
-  onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
 export function StudentDashboard({
@@ -29,7 +28,6 @@ export function StudentDashboard({
   onDeleteProject,
   onReportProject,
   onGetProjectDetails,
-  onJoinProject,
 }: StudentDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectType, setSelectedProjectType] = useState('All');
@@ -112,7 +110,9 @@ export function StudentDashboard({
       })
       : filteredProjects;
 
-  const myProjects = projects.filter(p => p.userName === currentUser.email && p.isActive);          //finds projects created by currentUser
+  const myProjects = projects.filter(p =>
+    p.isActive && (p.userId === currentUser.id || p.memberIds?.includes(currentUser.id))
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,12 +155,11 @@ export function StudentDashboard({
                   key={project.id}
                   project={project}
                   currentUser={currentUser}
-                  isOwner={true}
+                  isOwner={project.userId === currentUser.id}
                   onEdit={(updates) => onUpdateProject(project.id, updates)}
                   onDelete={() => onDeleteProject(project.id)}
                   onReport={onReportProject}
                   onGetProjectDetails={onGetProjectDetails}
-                  onJoinProject={onJoinProject}
                 />
               ))}
             </div>
@@ -270,12 +269,11 @@ export function StudentDashboard({
                   key={project.id}
                   project={project}
                   currentUser={currentUser}
-                  isOwner={project.userName === currentUser.email}
+                  isOwner={project.userId === currentUser.id}
                   onEdit={(updates) => onUpdateProject(project.id, updates)}
                   onDelete={() => onDeleteProject(project.id)}
                   onReport={onReportProject}
                   onGetProjectDetails={onGetProjectDetails}
-                  onJoinProject={onJoinProject}
                 />
               ))}
             </div>
