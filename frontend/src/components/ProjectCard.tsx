@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Project, User } from '../App';
-import { Calendar, Clock, Edit2, Trash2, Flag, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Edit2, Trash2, Flag, AlertCircle, Users } from 'lucide-react';
 import { EditProjectModal } from './EditProjectModal';
-import { ProjectDetailsModal } from './ProjectDetailsModal';
 
 interface ProjectCardProps {
   project: Project;
@@ -16,13 +16,12 @@ interface ProjectCardProps {
     description?: string
   ) => void;
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
-  onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
-export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGetProjectDetails, onJoinProject }: ProjectCardProps) {
+export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGetProjectDetails }: ProjectCardProps) {
+  const navigate = useNavigate();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailedProject, setDetailedProject] = useState<Project | null>(null);
   const [reportCategory, setReportCategory] = useState<'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other'>('other');
   const [reportDescription, setReportDescription] = useState('');
@@ -38,17 +37,8 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
     return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  // Calculate days since posted
   const daysSincePosted = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
   const needsRefresh = daysSincePosted > 30;
-
-  const handleViewDetails = async () => {
-    const details = await onGetProjectDetails(project.id);
-    if (details) {
-      setDetailedProject(details);
-      setShowDetailsModal(true);
-    }
-  };
 
   const handleEditClick = async () => {
     const details = await onGetProjectDetails(project.id);
@@ -113,14 +103,7 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
           </span>
         </div>
 
-        <div
-          onClick={handleViewDetails}
-          className="cursor-pointer"
-        >
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3 hover:text-gray-800 transition-colors">
-            {project.description}
-          </p>
-        </div>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
 
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -138,10 +121,7 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
             <p className="text-xs font-medium text-gray-700 mb-2">Preferred Skills:</p>
             <div className="flex flex-wrap gap-2">
               {project.preferredSkills.map((skill, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                >
+                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                   {skill}
                 </span>
               ))}
@@ -153,23 +133,25 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
           <p className="text-sm text-gray-700 mb-2">
             <strong>Posted by:</strong> {project.userName}
           </p>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             {isOwner ? (
-              <div className="flex justify-center w-full">
-                <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
-                  Your Project
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate(`/project/${project.id}/requests`)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
+              >
+                <Users className="w-4 h-4" />
+                <span>View Join Requests</span>
+              </button>
             ) : (
-              <div className="flex items-center gap-2 flex-1">
+              <>
                 <button
                   type="button"
-                  onClick={handleViewDetails}
+                  onClick={() => navigate(`/project/${project.id}`)}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
                 >
-                  <span>View & Join</span>
+                  <span>View</span>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setShowReportModal(true)}
@@ -178,22 +160,17 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
                 >
                   <Flag className="w-4 h-4" />
                 </button>
-              </div>
+              </>
             )}
           </div>
         </div>
       </div>
 
-
-
       {/* Edit Modal */}
       {showEditModal && detailedProject && (
         <EditProjectModal
           project={detailedProject}
-          onClose={() => {
-            setShowEditModal(false);
-            setDetailedProject(null);
-          }}
+          onClose={() => { setShowEditModal(false); setDetailedProject(null); }}
           onSave={onEdit}
         />
       )}
@@ -206,17 +183,10 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
             <p className="text-sm text-gray-600 mb-4">
               Select a reason and optionally add more details. Administrators will review your report.
             </p>
-
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reason
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
             <select
               value={reportCategory}
-              onChange={(e) =>
-                setReportCategory(
-                  e.target.value as 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other'
-                )
-              }
+              onChange={(e) => setReportCategory(e.target.value as typeof reportCategory)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
             >
               <option value="spam">Spam</option>
@@ -225,10 +195,7 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
               <option value="harassment">Harassment</option>
               <option value="other">Other</option>
             </select>
-
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Additional details (optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Additional details (optional)</label>
             <textarea
               value={reportDescription}
               onChange={(e) => setReportDescription(e.target.value)}
@@ -236,14 +203,9 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
               rows={4}
             />
-
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowReportModal(false);
-                  setReportCategory('other');
-                  setReportDescription('');
-                }}
+                onClick={() => { setShowReportModal(false); setReportCategory('other'); setReportDescription(''); }}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -257,19 +219,6 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
             </div>
           </div>
         </div>
-      )}
-
-      {/* Details Modal */}
-      {showDetailsModal && detailedProject && (
-        <ProjectDetailsModal
-          project={detailedProject}
-          isOwner={isOwner}
-          onClose={() => {
-            setShowDetailsModal(false);
-            setDetailedProject(null);
-          }}
-          onJoin={onJoinProject}
-        />
       )}
     </>
   );

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
 import { StudentDashboard } from './components/StudentDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { HomePage } from "./components/HomePage";
+import { ProjectViewPage } from './components/ProjectViewPage';
+import { JoinRequestPage } from './components/JoinRequestPage';
+import { JoinRequestsPage } from './components/JoinRequestsPage';
+import { UserProfilePage } from './components/UserProfilePage';
 
 
 export type UserRole = 'student' | 'admin';
@@ -45,6 +49,7 @@ export interface Project {
   updatedTime?: string;
   isActive: boolean;
   reportCount?: number;
+  memberIds?: string[];
 }
 
 export interface Report {
@@ -80,7 +85,7 @@ function App() {
             description: p.short_description || '',
             userName: p.author,
             userEmail: p.author,
-            userId: '',
+            userId: String(p.author_id),
             projectType: p.project_type || '',
             preferredSkills: p.preferred_skills || [],
             isActive: true,
@@ -89,6 +94,7 @@ function App() {
             contactMethod: '',
             contactInfo: '',
             createdAt: new Date(),
+            memberIds: (p.member_ids || []).map(String),
           }));
           setProjects(mapped);
         }
@@ -133,12 +139,12 @@ function App() {
     return null;
   };
 
-  const joinProject = async (projectId: string): Promise<boolean> => {
+  const joinProject = async (projectId: string, message: string = ''): Promise<boolean> => {
     try {
       const res = await fetch('/project_management/join_project/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: Number(projectId) }),
+        body: JSON.stringify({ project_id: Number(projectId), message }),
       });
       const data = await res.json();
       return data.success;
@@ -172,7 +178,7 @@ function App() {
     }
 
     setCurrentUser({
-      id: data.id,
+      id: String(data.id),
       first_name: data.first_name,
       last_name: data.last_name,
       username: data.username,
@@ -280,8 +286,28 @@ function App() {
     }
   };
 
-  const updateProject = (projectId: string, updates: Partial<Project>) => {
+  const updateProject = async (projectId: string, updates: Partial<Project>) => {
     setProjects(projects.map(p => p.id === projectId ? { ...p, ...updates } : p));
+
+    try {
+      await fetch('/project_management/update_project/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: Number(projectId),
+          title: updates.title,
+          short_description: updates.description,
+          extended_description: updates.fullDescription,
+          project_type: updates.projectType,
+          preferred_skills: updates.preferredSkills,
+          workload_per_week: updates.timeCommitment,
+          preferred_contact_method: updates.contactMethod,
+          contact_information: updates.contactInfo,
+        }),
+      });
+    } catch (e) {
+      console.error('Failed to update project:', e);
+    }
   };
 
   const deleteProject = async (projectId: string) => {
@@ -413,19 +439,27 @@ function App() {
   }
 
   return (
-    <StudentDashboard
-      currentUser={currentUser}
-      projects={projects}
-      users={users}
-      onLogout={handleLogout}
-      onUpdateProfile={updateUserProfile}
-      onAddProject={addProject}
-      onUpdateProject={updateProject}
-      onDeleteProject={deleteProject}
-      onReportProject={reportProject}
-      onGetProjectDetails={getProjectDetails}
-      onJoinProject={joinProject}
-    />
+    <Routes>
+      <Route path="/" element={
+        <StudentDashboard
+          currentUser={currentUser}
+          projects={projects}
+          users={users}
+          onLogout={handleLogout}
+          onUpdateProfile={updateUserProfile}
+          onAddProject={addProject}
+          onUpdateProject={updateProject}
+          onDeleteProject={deleteProject}
+          onReportProject={reportProject}
+          onGetProjectDetails={getProjectDetails}
+        />
+      } />
+      <Route path="/project/:id" element={<ProjectViewPage currentUser={currentUser} />} />
+      <Route path="/project/:id/join" element={<JoinRequestPage />} />
+      <Route path="/project/:id/requests" element={<JoinRequestsPage currentUser={currentUser} />} />
+      <Route path="/user/:id" element={<UserProfilePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -10,11 +10,9 @@ from django.test import TestCase
 from django.urls import reverse
 import json
 from .models import Project, Join_Request, Report
-from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 
 
-# Create your tests here.
 class ProjectTests(TestCase):
     def test_create_project(self):
         testcases = [
@@ -168,13 +166,13 @@ class ProjectTests(TestCase):
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"id": 1}),
+            data=json.dumps({"project_id": 1}),
             content_type="application/json"
         )
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"id": 2}),
+            data=json.dumps({"project_id": 2}),
             content_type="application/json"
         )
 
@@ -182,9 +180,17 @@ class ProjectTests(TestCase):
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"id": 2}),
+            data=json.dumps({"project_id": 2}),
             content_type="application/json"
         )
+
+        _ = self.client.login(username="project creator", password="TestPswd123!")
+        for jr in Join_Request.objects.filter(status="pending"):
+            self.client.post(
+                path=reverse("decide_join_request"),
+                data=json.dumps({"join_request_id": jr.id, "decision": "approved"}),
+                content_type="application/json"
+            )
 
         project1 = Project.objects.get(id=1)
         project2 = Project.objects.get(id=2)
@@ -341,9 +347,20 @@ class ProjectTests(TestCase):
 
         _ = self.client.post(
             path=reverse("join_project"),
-            data=json.dumps({"id": 2}),
+            data=json.dumps({"project_id": 2}),
             content_type="application/json"
         )
+
+        # Approve the pending join request as the project owner
+        _ = self.client.login(username="testuser", password="TestPswd123!")
+        for jr in Join_Request.objects.filter(status="pending"):
+            self.client.post(
+                path=reverse("decide_join_request"),
+                data=json.dumps({"join_request_id": jr.id, "decision": "approved"}),
+                content_type="application/json"
+            )
+
+        _ = self.client.login(username="seconduser", password="TestPswd123!")
 
         for (id, (title, short_description, extended_description, preferred_skills)) in enumerate(testcases, start=1):
             response = self.client.post(
@@ -702,23 +719,67 @@ class ReportTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class UpdateProjectTest(TestCase):
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(
+            username="owner@case.edu",
+            password="TestPswd123!",
+            email="owner@case.edu"
+        )
+        self.other = get_user_model().objects.create_user(
+            username="other@case.edu",
+            password="TestPswd123!",
+            email="other@case.edu"
+        )
+        self.project = Project.objects.create(
+            title="Original Title",
+            short_description="Original description",
+            author="owner@case.edu",
+            author_id=self.owner.id,
+        )
+
+    def test_update_project(self):
+        testcases = [
+            # (logged_in_as, new_title, expected_status, should_update)
+            ("owner@case.edu", "Updated Title", 200, True),
+            ("other@case.edu", "Hacked Title",  403, False),
+        ]
+
+        for (username, new_title, expected_status, should_update) in testcases:
+            self.client.login(username=username, password="TestPswd123!")
+
+            response = self.client.post(
+                path=reverse("update_project"),
+                data=json.dumps({"id": self.project.id, "title": new_title}),
+                content_type="application/json"
+            )
+
+            self.assertEqual(response.status_code, expected_status)
+            self.project.refresh_from_db()
+            if should_update:
+                self.assertEqual(self.project.title, new_title)
+            else:
+                self.assertNotEqual(self.project.title, new_title)
+
+
 class JoinProjectRequestTest(TestCase):
     def setUp(self):
         #requester
-        self.user = User.objects.create_user(
+        self.user = get_user_model().objects.create_user(
             username="tester",
             password="password",
             email="tester@case.edu"
         )
         #recipient
-        self.owner = User.objects.create_user(
+        self.owner = get_user_model().objects.create_user(
             username="owner",
             password="password",
             email="owner@case.edu"
         )
         self.project = Project.objects.create(
             title="Test Project",
-            author="admin"
+            author="admin",
+            author_id=self.owner.id,
         )
         self.project.members.add(self.owner)
         self.client.force_login(self.user)
@@ -732,28 +793,27 @@ class JoinProjectRequestTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-        # email sent?
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Join Request:", mail.outbox[0].subject)
         self.assertIn(self.owner.email, mail.outbox[0].to)
 
 class ApproveTest(TestCase):
     def setUp(self):
-        #requester
-        self.user = User.objects.create_user(
+        self.user = get_user_model().objects.create_user(
             username="tester",
             password="password",
             email="tester@case.edu"
         )
-        #owner
-        self.owner = User.objects.create_user(
+
+        self.owner = get_user_model().objects.create_user(
             username="owner",
             password="password",
             email="owner@case.edu"
         )
         self.project = Project.objects.create(
             title="Test Project",
-            author="admin"
+            author="admin",
+            author_id=self.owner.id,
         )
         self.project.members.add(self.owner)
         self.client.force_login(self.owner)
@@ -776,11 +836,8 @@ class ApproveTest(TestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
-        # refresh from DB
         self.join_request.refresh_from_db()
 
-        # status updated
         self.assertEqual(self.join_request.status, "approved")
 
-        # requester added to members
         self.assertTrue(self.project.members.filter(id=self.user.id).exists())
