@@ -16,6 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.http import FileResponse
+from pathlib import Path
+from django.conf import settings
+
+def serve_frontend(request, *args, **kwargs):
+    index = Path(settings.WHITENOISE_ROOT) / "index.html"
+    return FileResponse(open(index, "rb"), content_type="text/html")
 
 urlpatterns = [
     path("apicall/", include("api.urls")),
@@ -23,4 +30,6 @@ urlpatterns = [
     path("project_management/", include("project_management.urls")),
     path("profile_management/", include("profile_management.urls")),
     path('admin/', admin.site.urls),
+    path("", serve_frontend),
+    path("<path:path>", serve_frontend),
 ]

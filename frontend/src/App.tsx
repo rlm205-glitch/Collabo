@@ -59,7 +59,7 @@ export interface Report {
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const navigate = useNavigate();
@@ -138,7 +138,7 @@ function App() {
       const res = await fetch('/project_management/join_project/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Number(projectId) }),
+        body: JSON.stringify({ project_id: Number(projectId) }),
       });
       const data = await res.json();
       return data.success;

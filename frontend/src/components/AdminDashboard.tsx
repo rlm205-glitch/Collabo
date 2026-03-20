@@ -12,7 +12,6 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({
-  currentUser,
   projects,
   reports,
   users,
@@ -20,7 +19,6 @@ export function AdminDashboard({
   onDeleteProject,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'projects' | 'reports' | 'users'>('reports');
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   const reportedProjects = projects.filter(p => 
     reports.some(r => r.projectId === p.id)
@@ -267,7 +265,7 @@ export function AdminDashboard({
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-bold text-gray-900">{user.name}</h3>
+                            <h3 className="font-bold text-gray-900">{user.first_name} {user.last_name}</h3>
                             <span className={`px-2 py-1 text-xs rounded ${
                               user.role === 'admin'
                                 ? 'bg-red-100 text-red-700'

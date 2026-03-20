@@ -14,7 +14,7 @@ interface StudentDashboardProps {
   onAddProject: (project: Omit<Project, 'id' | 'createdAt'>) => void;
   onUpdateProject: (projectId: string, updates: Partial<Project>) => void;
   onDeleteProject: (projectId: string) => void;
-  onReportProject: (projectId: string, reason: string) => void;
+  onReportProject: (projectId: string, reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other', description?: string) => void;
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
   onJoinProject: (projectId: string) => Promise<boolean>;
 }
@@ -22,7 +22,6 @@ interface StudentDashboardProps {
 export function StudentDashboard({
   currentUser,
   projects,
-  users,
   onLogout,
   onUpdateProfile,
   onAddProject,

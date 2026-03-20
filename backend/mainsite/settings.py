@@ -24,9 +24,9 @@ BASE_PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = "django-insecure-9@u#*96ft400=b3l+g00tams)jxh(a$m0r1ff^2l$%4e7l^=&y"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -119,7 +120,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/assets/"
+STATIC_ROOT = BASE_BACKEND_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_PROJECT_DIR / "frontend" / "dist" / "assets"]
+WHITENOISE_ROOT = BASE_PROJECT_DIR / "frontend" / "dist"
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
@@ -130,3 +134,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+#This is just for the console, have to use smtp for production
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@cwru-collab.com"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

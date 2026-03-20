@@ -19,7 +19,7 @@ interface ProjectCardProps {
   onJoinProject: (projectId: string) => Promise<boolean>;
 }
 
-export function ProjectCard({ project, currentUser, isOwner, onEdit, onDelete, onReport, onGetProjectDetails, onJoinProject }: ProjectCardProps) {
+export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGetProjectDetails, onJoinProject }: ProjectCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);

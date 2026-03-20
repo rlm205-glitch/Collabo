@@ -28,7 +28,7 @@ export function CreateProjectModal({ currentUser, onClose, onSubmit }: CreatePro
 
     onSubmit({
       userId: currentUser.id,
-      userName: currentUser.name,
+      userName: `${currentUser.first_name} ${currentUser.last_name}`,
       userEmail: currentUser.email,
       title,
       description,
