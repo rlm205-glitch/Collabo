@@ -64,6 +64,7 @@ export interface Report {
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [users] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -140,6 +141,43 @@ function App() {
   };
 
   useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const res = await fetch('/authentication/whoami/', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setCurrentUser({
+              id: String(data.id),
+              first_name: data.first_name,
+              last_name: data.last_name,
+              username: data.username,
+              email: data.email,
+              role: data.is_staff ? 'admin' : 'student',
+              major: data.major,
+              skills: data.skills ?? [],
+              interests: data.interests ?? [],
+              availability: data.availability,
+              preferred_contact_method: data.preferred_contact_method,
+              active_project_notifications: data.active_project_notifications,
+              project_expiration_notifications: data.project_expiration_notifications,
+              weekly_update_notifications: data.weekly_update_notifications,
+              createdAt: new Date(),
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to restore session:', e);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    restoreSession();
+  }, []);
+
+  useEffect(() => {
     if (currentUser) {
       fetchProjects();
 
@@ -152,6 +190,7 @@ function App() {
   const handleLogin = async (email: string, password: string): Promise<string | null> => {
     const res = await fetch('/authentication/login/', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
@@ -204,7 +243,11 @@ function App() {
     return null;
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch('/authentication/logout/', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {});
     setCurrentUser(null);
     navigate('/');
   };
@@ -391,6 +434,10 @@ function App() {
       console.error('Failed to fetch reports:', e);
     }
   };
+
+  if (authLoading) {
+    return null;
+  }
 
   if (!currentUser) {
     return (
