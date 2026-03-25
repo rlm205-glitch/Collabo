@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate, get_user_model
+from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.core.validators import validate_email
 from . import utilities
 import json
@@ -81,3 +81,33 @@ def login_user(request: HttpRequest) -> HttpResponse:
     return JsonResponse(
         {"success": False, "error": "Invalid Login Credentials"}, status=400
     )
+
+
+@csrf_exempt
+def whoami(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        user = request.user
+        return JsonResponse({
+            "success": True,
+            "id": user.id, # pyright: ignore
+            "first_name": user.first_name, # pyright: ignore
+            "last_name": user.last_name, # pyright: ignore
+            "username": user.username, # pyright: ignore
+            "email": user.email, # pyright: ignore
+            "major": user.major, # pyright: ignore
+            "skills": user.skills, # pyright: ignore
+            "interests": user.interests, # pyright: ignore
+            "availability": user.availability, # pyright: ignore
+            "preferred_contact_method": user.preferred_contact_method, # pyright: ignore
+            "active_project_notifications": user.active_project_notifications, # pyright: ignore
+            "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
+            "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "is_staff": user.is_staff
+        })
+    return JsonResponse({"success": False}, status=401)
+
+
+@csrf_exempt
+def logout_user(request: HttpRequest) -> HttpResponse:
+    logout(request)
+    return JsonResponse({"success": True})
