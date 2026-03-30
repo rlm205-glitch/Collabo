@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "user_authentication",
     "project_management",
     "profile_management",
+    "llm_integration",
 ]
 
 MIDDLEWARE = [
