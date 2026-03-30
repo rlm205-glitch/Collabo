@@ -1,10 +1,11 @@
 from sqlite3 import IntegrityError
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import json
 import ollama
 
-
+@csrf_exempt
 def prompt_llm(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")

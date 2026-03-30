@@ -9,4 +9,4 @@ def blank_call(request: HttpRequest) -> JsonResponse:
 def print_hello_world(request: HttpRequest) -> JsonResponse:
     print(f"Hello World")
 
-    return JsonResponse({ "message": "Hello World" })
+    return JsonResponse({ "message": "Hello World, but I added sometihng" })
