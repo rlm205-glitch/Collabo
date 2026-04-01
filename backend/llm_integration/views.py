@@ -66,36 +66,38 @@ def prompt_llm(request: HttpRequest) -> HttpResponse:
 
     tools = [list_projects, get_project, get_self_profile, get_profile, link_to_project]
 
-    try:
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": json_body.get("prompt")},
-        ]
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": json_body.get("prompt")},
+    ]
 
-        for _ in range(25):
+    for i in range(25):
+        try:
             response = ollama.chat(
                 model="nemotron-3-nano:4b",
                 messages=messages,
                 tools=tools,
             )
+        except Exception as e:
+            return HttpResponseBadRequest(f"ollama.chat failed on iteration {i + 1}: {e}".encode())
 
-            message = response["message"]
-            messages.append(message)
+        message = response["message"]
+        messages.append(message)
 
-            tool_calls = message.get("tool_calls") or []
-            if not tool_calls:
-                return JsonResponse({"success": True, "response": message["content"]})
+        tool_calls = message.get("tool_calls") or []
+        if not tool_calls:
+            return JsonResponse({"success": True, "response": message["content"]})
 
-            for tool_call in tool_calls:
-                fn_name = tool_call["function"]["name"]
-                fn_args = tool_call["function"]["arguments"]
-                fn = available_tools.get(fn_name)
-                if fn is None:
-                    result = {"error": f"Unknown tool: {fn_name}"}
-                else:
-                    result = fn(**fn_args)
-                messages.append({"role": "tool", "content": json.dumps(result)})
+        for tool_call in tool_calls:
+            fn_name = tool_call["function"]["name"]
+            fn_args = tool_call["function"]["arguments"]
+            fn = available_tools.get(fn_name)
+            if fn is None:
+                return HttpResponseBadRequest(f"LLM requested unknown tool '{fn_name}' on iteration {i + 1}".encode())
+            try:
+                result = fn(**fn_args)
+            except Exception as e:
+                return HttpResponseBadRequest(f"Tool '{fn_name}' raised an exception on iteration {i + 1}: {e}".encode())
+            messages.append({"role": "tool", "content": json.dumps(result)})
 
-        return JsonResponse({"success": True, "response": messages[-1].get("content", "")})
-    except Exception:
-        return HttpResponseBadRequest(b"Failed to prompt llm")
+    return HttpResponseBadRequest(b"Reached 25-call limit without a final response from the LLM")
