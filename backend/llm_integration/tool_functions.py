@@ -8,8 +8,6 @@ def list_projects():
     List all projects available for users to join with condensed data about the projects. This will return a list of dictionaries containing project data.
     """
     try:
-        projects = Project.objects.prefetch_related('members').order_by(sortkey, "author")
-
         condensed_project_data = [
             {
                 "id": p.id,
