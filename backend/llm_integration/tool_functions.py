@@ -8,6 +8,8 @@ def list_projects():
     List all projects available for users to join with condensed data about the projects. This will return a list of dictionaries containing project data.
     """
     try:
+        projects = Project.objects.prefetch_related('members').all()
+
         condensed_project_data = [
             {
                 "id": p.id,
@@ -72,8 +74,8 @@ def get_project(id: int):
             },
         }
 
-    except Exception:
-        return {"success": False, "error": "Failed to get project"}
+    except Exception as e:
+        return {"success": False, "error": f"Failed to get project: {str(e)}"}
 
 def get_profile(user_id: int):
     """
