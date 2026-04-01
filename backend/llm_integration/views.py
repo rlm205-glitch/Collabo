@@ -1,7 +1,6 @@
 from sqlite3 import IntegrityError
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
-from functools import partial
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
@@ -52,8 +51,19 @@ def prompt_llm(request: HttpRequest) -> HttpResponse:
 
     user_id = request.user.id
     base_url = request.build_absolute_uri('/')
-    get_self_profile = partial(get_profile, user_id=user_id)
-    link_to_project = partial(create_link_to_project, base_url=base_url)
+
+    def get_self_profile():
+        """
+        Gets the profile of the current user, returning their skills, interests, availability, and more.
+        """
+        return get_profile(user_id)
+    def link_to_project(id: int):
+        """
+        Returns a link to the page of a project given the project id.
+        Args:
+            id: The id of the project to link to
+        """
+        return create_link_to_project(id, base_url)
 
     available_tools= {
         'list_projects': list_projects,
