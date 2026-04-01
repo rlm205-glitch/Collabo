@@ -64,19 +64,38 @@ def prompt_llm(request: HttpRequest) -> HttpResponse:
     }
 
 
+    tools = [list_projects, get_project, get_self_profile, get_profile, link_to_project]
+
     try:
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": json_body.get("prompt")},
         ]
-        response = ollama.chat(
-            model="nemotron-3-nano:4b", 
-            messages=messages, 
-            tools=[list_projects, get_project, get_self_profile, get_profile, link_to_project]
-        )
 
-        return JsonResponse(
-            {"success": True, "response": response["message"]["content"]}
-        )
+        for _ in range(25):
+            response = ollama.chat(
+                model="nemotron-3-nano:4b",
+                messages=messages,
+                tools=tools,
+            )
+
+            message = response["message"]
+            messages.append(message)
+
+            tool_calls = message.get("tool_calls") or []
+            if not tool_calls:
+                return JsonResponse({"success": True, "response": message["content"]})
+
+            for tool_call in tool_calls:
+                fn_name = tool_call["function"]["name"]
+                fn_args = tool_call["function"]["arguments"]
+                fn = available_tools.get(fn_name)
+                if fn is None:
+                    result = {"error": f"Unknown tool: {fn_name}"}
+                else:
+                    result = fn(**fn_args)
+                messages.append({"role": "tool", "content": json.dumps(result)})
+
+        return JsonResponse({"success": True, "response": messages[-1].get("content", "")})
     except Exception:
         return HttpResponseBadRequest(b"Failed to prompt llm")
