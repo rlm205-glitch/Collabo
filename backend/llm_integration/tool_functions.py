@@ -44,32 +44,21 @@ def get_project(id: int):
     try:
         project = Project.objects.get(id=id)
 
-        author_first_name, author_last_name = "", ""
-        try:
-            author_user = get_user_model().objects.get(id=project.author_id)
-            author_first_name = author_user.first_name
-            author_last_name = author_user.last_name
-        except Exception:
-            pass
-
         return {
             "success": True,
             "project": {
                 "id": project.id,
                 "title": project.title,
                 "short_description": project.short_description,
-                "author": project.author,
                 "author_id": project.author_id,
-                "author_first_name": author_first_name,
-                "author_last_name": author_last_name,
                 "extended_description": project.extended_description,
                 "preferred_skills": project.preferred_skills,
                 "project_type": project.project_type,
                 "workload_per_week": project.workload_per_week,
                 "preferred_contact_method": project.preferred_contact_method,
                 "contact_information": project.contact_information,
-                "creation_time": project.creation_time,
-                "updated_time": project.updated_time,
+                "creation_time": project.creation_time.isoformat() if project.creation_time else None,
+                "updated_time": project.updated_time.isoformat() if project.updated_time else None,
                 "members": [user.id for user in project.members.all()],
             },
         }
