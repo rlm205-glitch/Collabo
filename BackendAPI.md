@@ -422,6 +422,33 @@
 }
 ```
 
+## LLM Integration
+
+### Prompt LLM: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/llm_integration/prompt_llm`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
+
+```json
+{
+  "prompt": "{prompt}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "response": "{llm_response}"
+}
+```
+
+- Note: The LLM does not retain any memory between requests — it will not remember previous messages or responses. This endpoint is intended for one-off questions only.
+
+---
+
 ## User Authentication
 
 ### Register User: Via HTTP POST with JSON data
