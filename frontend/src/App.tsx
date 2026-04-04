@@ -402,12 +402,11 @@ function App() {
   };
 
   const sendLlmMessage = async (query: string): Promise<string> => {
-    // TODO: replace with the real LLM endpoint once confirmed
-    const res = await fetch('/api/llm_query/', {
+    const res = await fetch('/llm_api/prompt_llm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ prompt: query }),
     });
 
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
