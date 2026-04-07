@@ -283,10 +283,6 @@ function App() {
     if (!res.ok) {
       console.error('Failed to save profile');
     }
-
-    // 3) Best practice: if backend returns updated user, replace local state
-    // const data = await res.json();
-    // setCurrentUser({ ...data.user, createdAt: new Date(data.user.createdAt) });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
@@ -348,7 +344,7 @@ function App() {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        ...(isAdmin && { credentials: 'include' }), // only add this for admin
+        ...(isAdmin && { credentials: 'include' }), 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: Number(projectId) }),
       });
