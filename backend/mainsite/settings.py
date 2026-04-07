@@ -24,13 +24,7 @@ BASE_PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = "django-insecure-9@u#*96ft400=b3l+g00tams)jxh(a$m0r1ff^2l$%4e7l^=&y"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-<<<<<<< HEAD
 DEBUG = False
-=======
-DEBUG = True
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
->>>>>>> 352e71e (Add backend email verification)
 
 ALLOWED_HOSTS = ['*']
 
@@ -142,26 +136,12 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-<<<<<<< HEAD
-=======
-# email validation
->>>>>>> 352e71e (Add backend email verification)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-<<<<<<< HEAD
 EMAIL_HOST_USER = "collabocwru.noreply@gmail.com"
 EMAIL_HOST_PASSWORD = "prwk hxzv wqux cpsh"
 DEFAULT_FROM_EMAIL = "Collabo <collabocwru.noreply@gmail.com>"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-=======
-
-EMAIL_HOST_USER = "collabocwru.noreply@gmail.com"
-EMAIL_HOST_PASSWORD = "prwk hxzv wqux cpsh"
-
-DEFAULT_FROM_EMAIL = "Collabo <collabocwru.noreply@gmail.com>"
-
-FRONTEND_URL = "http://localhost:5173"
->>>>>>> 352e71e (Add backend email verification)
