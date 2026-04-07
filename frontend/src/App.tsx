@@ -94,7 +94,7 @@ function App() {
             timeCommitment: p.workload_per_week || '',
             contactMethod: '',
             contactInfo: '',
-            createdAt: new Date(),
+            createdAt: p.creation_time ? new Date(p.creation_time) : new Date(),
             memberIds: (p.member_ids || []).map(String),
           }));
           setProjects(mapped);
