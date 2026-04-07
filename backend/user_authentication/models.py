@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils import timezone
-
 class CollaboUser(AbstractUser):
     email = models.EmailField(unique=True)
     major = models.TextField(max_length=50, help_text='Major', default="")
@@ -19,6 +18,7 @@ class CollaboUser(AbstractUser):
         return self.email
 
 
+
 class EmailVerificationToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64, unique=True)  # sha256 hex
@@ -27,3 +27,9 @@ class EmailVerificationToken(models.Model):
 
     def is_valid(self):
         return self.used_at is None and timezone.now() < self.expires_at
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)

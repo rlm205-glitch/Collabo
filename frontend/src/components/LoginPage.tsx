@@ -69,6 +69,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
+            {/* forgot password link */}
+            <div className="text-right mt-1">
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

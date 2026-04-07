@@ -10,6 +10,8 @@ import { JoinRequestPage } from './components/JoinRequestPage';
 import { JoinRequestsPage } from './components/JoinRequestsPage';
 import { UserProfilePage } from './components/UserProfilePage';
 import VerifyEmail from './components/VerifyEmail';
+import { ForgotPassword } from './components/ForgotPassword';
+import { ResetPassword } from './components/ResetPassword';
 
 
 export type UserRole = 'student' | 'admin';
@@ -239,7 +241,6 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-    navigate('/login');
     return null;
   };
 
@@ -452,6 +453,8 @@ function App() {
   if (!currentUser) {
     return (
       <Routes>
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
