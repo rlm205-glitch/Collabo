@@ -397,6 +397,20 @@ function App() {
     }
   };
 
+  const sendLlmMessage = async (query: string): Promise<string> => {
+    const res = await fetch('/llm_api/prompt_llm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ prompt: query }),
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const data = await res.json();
+    return data.response ?? 'No response received.';
+  };
+
   const fetchReports = async () => {
     try {
       const res = await fetch('/project_management/list_reports/', {
@@ -480,6 +494,7 @@ function App() {
           onDeleteProject={deleteProject}
           onReportProject={reportProject}
           onGetProjectDetails={getProjectDetails}
+          onSendLlmMessage={sendLlmMessage}
         />
       } />
       <Route path="/project/:id" element={<ProjectViewPage currentUser={currentUser} />} />

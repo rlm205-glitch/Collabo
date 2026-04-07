@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { User, Project } from '../App';
-import { Search, Filter, Plus, UserCircle, LogOut } from 'lucide-react';
+import { Search, Filter, Plus, UserCircle, LogOut, MessageSquare, X, Send, Bot } from 'lucide-react';
 import { ProjectCard } from './ProjectCard';
 import { CreateProjectModal } from './CreateProjectModal';
 import { UserProfileModal } from './UserProfileModal';
@@ -16,6 +16,7 @@ interface StudentDashboardProps {
   onDeleteProject: (projectId: string) => void;
   onReportProject: (projectId: string, reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other', description?: string) => void;
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
+  onSendLlmMessage: (query: string) => Promise<string>;
 }
 
 export function StudentDashboard({
@@ -28,6 +29,7 @@ export function StudentDashboard({
   onDeleteProject,
   onReportProject,
   onGetProjectDetails,
+  onSendLlmMessage,
 }: StudentDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectType, setSelectedProjectType] = useState('All');
@@ -37,6 +39,33 @@ export function StudentDashboard({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [sortOption, setSortOption] = useState<'default' | 'best'>('default');
+
+  // LLM chat assistant state
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+
+  const sendChatMessage = async () => {
+    const query = chatInput.trim();
+    if (!query || chatLoading) return;
+
+    setChatMessages(prev => [...prev, { role: 'user', text: query }]);
+    setChatInput('');
+    setChatLoading(true);
+
+    try {
+      const response = await onSendLlmMessage(query);
+      setChatMessages(prev => [...prev, { role: 'assistant', text: response }]);
+    } catch (err) {
+      setChatMessages(prev => [
+        ...prev,
+        { role: 'assistant', text: 'Sorry, something went wrong. Please try again.' },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   // Get unique project types and skills for filters
   const projectTypes = ['All', ...Array.from(new Set(projects.map(p => p.projectType)))];
@@ -297,6 +326,80 @@ export function StudentDashboard({
           onSave={onUpdateProfile}
         />
       )}
+
+      {/* LLM Chat Assistant */}
+      {showChat && (
+        <div className="fixed bottom-20 right-6 z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col" style={{ height: '420px' }}>
+          {/* Chat header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-blue-600 rounded-t-xl">
+            <div className="flex items-center gap-2 text-white">
+              <Bot className="w-4 h-4" />
+              <span className="font-semibold text-sm">AI Assistant</span>
+            </div>
+            <button onClick={() => setShowChat(false)} className="text-white hover:text-blue-200">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+            {chatMessages.length === 0 && (
+              <p className="text-xs text-gray-400 text-center mt-4">Ask anything about projects, teammates, or the platform.</p>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
+                    msg.role === 'user'
+                      ? 'bg-blue-600 text-white rounded-br-none'
+                      : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-gray-500 px-3 py-2 rounded-lg text-sm rounded-bl-none">
+                  Thinking…
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="px-3 pb-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') sendChatMessage(); }}
+                placeholder="Ask something…"
+                className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={chatLoading}
+              />
+              <button
+                onClick={sendChatMessage}
+                disabled={chatLoading || !chatInput.trim()}
+                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating chat toggle button */}
+      <button
+        onClick={() => setShowChat(prev => !prev)}
+        className="fixed bottom-6 right-6 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+        aria-label="Toggle AI Assistant"
+      >
+        {showChat ? <X className="w-5 h-5" /> : <MessageSquare className="w-5 h-5" />}
+      </button>
     </div>
   );
 }
