@@ -7,9 +7,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/authentication': 'http://localhost:9012',
-      '/project_management': 'http://localhost:9012',
-      '/profile_management': 'http://localhost:9012',
+      '/authentication': 'http://localhost:8000',
+      '/project_management': 'http://localhost:8000',
+      '/profile_management': 'http://localhost:8000',
     },
   },
 })

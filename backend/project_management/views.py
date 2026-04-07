@@ -122,6 +122,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
                 "workload_per_week": p.workload_per_week,
                 "preferred_skills": p.preferred_skills,
                 "member_ids": [m.id for m in p.members.all()],
+                "creation_time": p.creation_time,
             }
             for p in projects
         ]

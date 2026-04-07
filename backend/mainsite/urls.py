@@ -14,22 +14,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
 from django.http import FileResponse
 from pathlib import Path
 from django.conf import settings
 
+
 def serve_frontend(request, *args, **kwargs):
     index = Path(settings.WHITENOISE_ROOT) / "index.html"
     return FileResponse(open(index, "rb"), content_type="text/html")
+
 
 urlpatterns = [
     path("apicall/", include("api.urls")),
     path("authentication/", include("user_authentication.urls")),
     path("project_management/", include("project_management.urls")),
     path("profile_management/", include("profile_management.urls")),
-    path('admin/', admin.site.urls),
+    path("llm_api/", include("llm_integration.urls")),
+    path("admin/", admin.site.urls),
     path("", serve_frontend),
     path("<path:path>", serve_frontend),
 ]

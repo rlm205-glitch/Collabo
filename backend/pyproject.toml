@@ -8,11 +8,9 @@ dependencies = [
     "django>=6.0.1",
     "django-cors-headers>=4.9.0",
     "djangorestframework>=3.16.1",
-<<<<<<< HEAD
+    "ollama>=0.6.1",
     "whitenoise>=6.0.0",
-=======
     "python-dotenv>=1.2.1",
->>>>>>> 352e71e (Add backend email verification)
 ]
 
 [dependency-groups]

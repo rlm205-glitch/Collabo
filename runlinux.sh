@@ -7,7 +7,7 @@ FRONTEND_PID=$!
 
 cd ../backend
 ./manage.py migrate 
-./manage.py runserver 0.0.0.0:9012 &
+./manage.py runserver &
 BACKEND_PID=$!
 
 cleanup() {

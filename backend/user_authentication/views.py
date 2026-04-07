@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login, authenticate, get_user_model
+from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.core.validators import validate_email
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -12,17 +12,13 @@ from django.conf import settings
 from datetime import timedelta
 from . import utilities
 import json
-<<<<<<< HEAD
-import hashlib
-import secrets
-=======
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 from .models import EmailVerificationToken
 import hashlib, secrets
->>>>>>> 352e71e (Add backend email verification)
 
 POST_LOGIN_PAGE_URL: str = "http://localhost:5173"
 
@@ -43,19 +39,8 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
     try:
         validate_password(password)
-<<<<<<< HEAD
         validate_email(email)
         user = get_user_model().objects.create_user(email, email=email, password=password, first_name=first_name, last_name=last_name)
-=======
-
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-        )
->>>>>>> 352e71e (Add backend email verification)
 
         user.is_active = False
         user.save(update_fields=["is_active"])
@@ -97,7 +82,6 @@ def login_user(request: HttpRequest) -> HttpResponse:
     email = (json_body.get("email") or "").strip()
     password: str = json_body.get("password") or ""
 
-<<<<<<< HEAD
     try:
         username = CollaboUser.objects.get(email=email).username
     except Exception:
@@ -105,17 +89,11 @@ def login_user(request: HttpRequest) -> HttpResponse:
 
     try:
         u = CollaboUser.objects.get(username=username)
-=======
-    # If user exists but is inactive, give a specific error
-    try:
-        u = User.objects.get(username=email)
->>>>>>> 352e71e (Add backend email verification)
         if not u.is_active:
             return JsonResponse(
                 {"success": False, "error": "Please verify your email before logging in."},
                 status=403,
             )
-<<<<<<< HEAD
     except CollaboUser.DoesNotExist:
         pass
 
@@ -145,25 +123,6 @@ def login_user(request: HttpRequest) -> HttpResponse:
         {"success": False, "error": "Invalid Login Credentials"}, status=400
     )
 
-=======
-    except User.DoesNotExist:
-        pass
-
-    if (user := authenticate(request, username=email, password=password)) is not None:
-        login(request, user)
-
-        send_mail(
-            subject="New Login to Your Collabo Account",
-            message="You have successfully logged in to your Collabo account.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-        )
-
-        return JsonResponse({"success": True, "redirect_url": POST_LOGIN_PAGE_URL})
-    return JsonResponse({"success": False, "error": "Invalid Login Credentials"}, status=400)
-
-  
->>>>>>> 352e71e (Add backend email verification)
 
 @csrf_exempt
 def verify_email(request: HttpRequest) -> HttpResponse:
@@ -195,4 +154,31 @@ def verify_email(request: HttpRequest) -> HttpResponse:
     rec.used_at = timezone.now()
     rec.save(update_fields=["used_at"])
 
+@csrf_exempt
+def whoami(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        user = request.user
+        return JsonResponse({
+            "success": True,
+            "id": user.id, # pyright: ignore
+            "first_name": user.first_name, # pyright: ignore
+            "last_name": user.last_name, # pyright: ignore
+            "username": user.username, # pyright: ignore
+            "email": user.email, # pyright: ignore
+            "major": user.major, # pyright: ignore
+            "skills": user.skills, # pyright: ignore
+            "interests": user.interests, # pyright: ignore
+            "availability": user.availability, # pyright: ignore
+            "preferred_contact_method": user.preferred_contact_method, # pyright: ignore
+            "active_project_notifications": user.active_project_notifications, # pyright: ignore
+            "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
+            "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "is_staff": user.is_staff
+        })
+    return JsonResponse({"success": False}, status=401)
+
+
+@csrf_exempt
+def logout_user(request: HttpRequest) -> HttpResponse:
+    logout(request)
     return JsonResponse({"success": True})

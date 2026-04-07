@@ -65,6 +65,7 @@ export interface Report {
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [users] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -94,7 +95,7 @@ function App() {
             timeCommitment: p.workload_per_week || '',
             contactMethod: '',
             contactInfo: '',
-            createdAt: new Date(),
+            createdAt: p.creation_time ? new Date(p.creation_time) : new Date(),
             memberIds: (p.member_ids || []).map(String),
           }));
           setProjects(mapped);
@@ -141,6 +142,43 @@ function App() {
   };
 
   useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const res = await fetch('/authentication/whoami/', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setCurrentUser({
+              id: String(data.id),
+              first_name: data.first_name,
+              last_name: data.last_name,
+              username: data.username,
+              email: data.email,
+              role: data.is_staff ? 'admin' : 'student',
+              major: data.major,
+              skills: data.skills ?? [],
+              interests: data.interests ?? [],
+              availability: data.availability,
+              preferred_contact_method: data.preferred_contact_method,
+              active_project_notifications: data.active_project_notifications,
+              project_expiration_notifications: data.project_expiration_notifications,
+              weekly_update_notifications: data.weekly_update_notifications,
+              createdAt: new Date(),
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to restore session:', e);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    restoreSession();
+  }, []);
+
+  useEffect(() => {
     if (currentUser) {
       fetchProjects();
 
@@ -153,6 +191,7 @@ function App() {
   const handleLogin = async (email: string, password: string): Promise<string | null> => {
     const res = await fetch('/authentication/login/', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
@@ -204,7 +243,11 @@ function App() {
     return null;
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch('/authentication/logout/', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {});
     setCurrentUser(null);
     navigate('/');
   };
@@ -240,10 +283,6 @@ function App() {
     if (!res.ok) {
       console.error('Failed to save profile');
     }
-
-    // 3) Best practice: if backend returns updated user, replace local state
-    // const data = await res.json();
-    // setCurrentUser({ ...data.user, createdAt: new Date(data.user.createdAt) });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
@@ -305,7 +344,7 @@ function App() {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        ...(isAdmin && { credentials: 'include' }), // only add this for admin
+        ...(isAdmin && { credentials: 'include' }), 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: Number(projectId) }),
       });
@@ -358,6 +397,20 @@ function App() {
     }
   };
 
+  const sendLlmMessage = async (query: string): Promise<string> => {
+    const res = await fetch('/llm_api/prompt_llm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ prompt: query }),
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const data = await res.json();
+    return data.response ?? 'No response received.';
+  };
+
   const fetchReports = async () => {
     try {
       const res = await fetch('/project_management/list_reports/', {
@@ -391,6 +444,10 @@ function App() {
       console.error('Failed to fetch reports:', e);
     }
   };
+
+  if (authLoading) {
+    return null;
+  }
 
   if (!currentUser) {
     return (
@@ -438,6 +495,7 @@ function App() {
           onDeleteProject={deleteProject}
           onReportProject={reportProject}
           onGetProjectDetails={getProjectDetails}
+          onSendLlmMessage={sendLlmMessage}
         />
       } />
       <Route path="/project/:id" element={<ProjectViewPage currentUser={currentUser} />} />
