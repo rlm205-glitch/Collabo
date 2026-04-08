@@ -240,10 +240,16 @@ uv run manage.py test
 This is not necessary to build and run the platform, however the chatbot
 will not work without it.
 
-Requires Ollama v0.20+
+Requires [Ollama](https://github.com/ollama/ollama) v0.20+
 
-You must install `nemotron-3-nano:4b` with Ollama and run in on an http
-server simultaneously with Django. The port defaults to 11434, but you can
+Install the model and start the server:
+
+```sh
+ollama pull nemotron-3-nano:4b
+ollama serve
+```
+
+You must run [Ollama](https://github.com/ollama/ollama) simultaneously with Django. The port defaults to 11434, but you can
 set it to whatever you choose, as long as you make sure to set the
 OLLAMA_HOST environment variable to the corresponding port.
 
