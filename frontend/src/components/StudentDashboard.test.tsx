@@ -178,6 +178,9 @@ const defaultProps = {
   onGetProjectDetails: vi.fn().mockResolvedValue(null) as (
     id: string,
   ) => Promise<Project | null>,
+  onSendLlmMessage: vi.fn().mockResolvedValue('') as (
+    query: string,
+  ) => Promise<string>,
 }
 
 // ─── RENDER HELPER ────────────────────────────────────────────────────────────
