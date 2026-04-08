@@ -234,3 +234,19 @@ To run the test suite:
 cd backend
 uv run manage.py test
 ```
+
+### Running the LLM
+
+This is not necessary to build and run the platform, however the chatbot
+will not work without it.
+
+Requires Ollama v0.20+
+
+You must install `nemotron-3-nano:4b` with Ollama and run in on an http
+server simultaneously with Django. The port defaults to 11434, but you can
+set it to whatever you choose, as long as you make sure to set the
+OLLAMA_HOST environment variable to the corresponding port.
+
+```sh
+export OLLAMA_HOST=127.0.0.1:11434
+```
