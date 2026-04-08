@@ -344,7 +344,7 @@ export function StudentDashboard({
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
             {chatMessages.length === 0 && (
-              <p className="text-xs text-gray-400 text-center mt-4">Ask anything about projects, teammates, or the platform.</p>
+              <p className="text-xs text-gray-400 text-center mt-4">Ask anything about projects, teammates, your preferences, or get personalized recommendations.</p>
             )}
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
