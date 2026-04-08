@@ -236,6 +236,10 @@ cd backend
 uv run manage.py test
 ```
 
+> Note for email sending: If you would like the server to send real emails, leave the
+> following enviroment variable as it is. If you would prefer that emails simply be
+> printed to the console, run `export DJANGO_EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend`
+
 ### Running the LLM
 
 This is not necessary to build and run the platform, however the chatbot
