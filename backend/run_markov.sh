@@ -48,7 +48,7 @@ fi
 
 echo "Launching client on CPU node..."
 srun -A csdsx93 -p markov_cpu bash -c "
-    cd $HOME/collabo/backend && hostname && OLLAMA_HOST=${NODE_IP}:11434 uv run manage.py runserver 0.0.0.0:8000 2>&1
+    cd $HOME/collabo/backend && hostname && OLLAMA_HOST=${NODE_IP}:11434 uv run manage.py runserver 0.0.0.0:9012 2>&1
 "
 
 kill $SRUN_PID 2>/dev/null
