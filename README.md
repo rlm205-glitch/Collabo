@@ -108,6 +108,7 @@ All endpoints accept and return JSON. Authentication endpoints are under `/authe
 | GET | `/authentication/whoami/` | Return current session user info |
 | POST | `/authentication/logout/` | End the session |
 | POST | `/authentication/verify-email/` | Activate account via emailed token |
+| POST | `/authentication/resend-verification/` | Resend the account verification email |
 | POST | `/authentication/forgot-password/` | Send password reset email |
 | POST | `/authentication/reset-password/` | Reset password via emailed token |
 
