@@ -68,7 +68,7 @@ export interface Report {
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [users] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const navigate = useNavigate();
@@ -186,6 +186,7 @@ function App() {
 
       if (currentUser.role === 'admin') {                   //if user is an admin we will always fetch projects which will be stored in reports
         fetchReports();
+        fetchUsers();
       }
     }
   }, [currentUser]);
@@ -443,6 +444,40 @@ function App() {
       setReports(mapped);
     } catch (e) {
       console.error('Failed to fetch reports:', e);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/authentication/list-users/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        console.error('Failed to fetch users:', data);
+        return;
+      }
+
+      const mapped: User[] = (data.users ?? []).map((u: any) => ({
+        id: String(u.id),
+        first_name: u.first_name ?? '',
+        last_name: u.last_name ?? '',
+        username: u.username ?? '',
+        email: u.email ?? '',
+        role: u.is_staff ? 'admin' : 'student' as UserRole,
+        major: u.major,
+        skills: u.skills,
+        createdAt: new Date(u.date_joined),
+      }));
+
+      setUsers(mapped);
+    } catch (e) {
+      console.error('Failed to fetch users:', e);
     }
   };
 

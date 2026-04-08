@@ -257,6 +257,42 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
 
 
 @csrf_exempt
+def list_users(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Admin access required"}, status=403)
+
+    users = get_user_model().objects.order_by("date_joined")
+
+    condensed_user_data = [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "is_staff": u.is_staff,
+            "is_active": u.is_active,
+            "date_joined": u.date_joined,
+            "major": u.major,
+            "skills": u.skills,
+        }
+        for u in users
+    ]
+
+    return JsonResponse({
+        "success": True,
+        "users": condensed_user_data,
+        "user_count": len(condensed_user_data),
+    })
+
+
+@csrf_exempt
 def reset_password(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")

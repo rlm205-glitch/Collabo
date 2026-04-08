@@ -11,4 +11,5 @@ urlpatterns = [
     path("resend-verification/", views.resend_verification_email, name="resend_verification_email"),
     path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("reset-password/", views.reset_password, name="reset_password"),
+    path("list-users/", views.list_users, name="list_users"),
 ]
