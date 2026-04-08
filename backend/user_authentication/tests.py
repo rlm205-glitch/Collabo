@@ -172,6 +172,36 @@ class EmailVerificationTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.is_active)
 
+class ListUsersTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.admin = User.objects.create_user(
+            username="admin@case.edu",
+            email="admin@case.edu",
+            password="AdminPass1!",
+            is_active=True,
+            is_staff=True,
+        )
+        User.objects.create_user(
+            username="student@case.edu",
+            email="student@case.edu",
+            password="StudentPass1!",
+            is_active=True,
+        )
+
+    def test_list_users_returns_all_users(self):
+        self.client.login(username="admin@case.edu", password="AdminPass1!")
+        response = self.client.post(
+            path="/authentication/list-users/",
+            data=json.dumps({}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, SUCCESS)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["user_count"], 2)
+
+
 class AuthenticationTests(TestCase):
     User = get_user_model()
     def test_user_registration(self):

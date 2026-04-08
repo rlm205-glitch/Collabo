@@ -183,6 +183,45 @@ def verify_email(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"success": True})
 
 @csrf_exempt
+def resend_verification_email(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    json_body = dict(json.loads(request.body))
+    email = (json_body.get("email") or "").strip()
+
+    # Always return success to avoid leaking whether an email exists
+    try:
+        user = CollaboUser.objects.get(username=email)
+        if not user.is_active:
+            # Invalidate any existing unused tokens
+            EmailVerificationToken.objects.filter(user=user, used_at__isnull=True).delete()
+
+            raw_token = secrets.token_urlsafe(16)
+            token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+
+            EmailVerificationToken.objects.create(
+                user=user,
+                token_hash=token_hash,
+                expires_at=timezone.now() + timedelta(hours=24),
+            )
+
+            base_url = request.build_absolute_uri('/').rstrip('/')
+            verify_link = f"{base_url}/verify-email?token={raw_token}"
+
+            send_mail(
+                subject="Verify your Collabo account",
+                message=f"Click this link to verify your email:\n\n{verify_link}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+            )
+    except CollaboUser.DoesNotExist:
+        pass
+
+    return JsonResponse({"success": True})
+
+
+@csrf_exempt
 def forgot_password(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
@@ -215,6 +254,42 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
         pass
 
     return JsonResponse({"success": True})
+
+
+@csrf_exempt
+def list_users(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
+
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Admin access required"}, status=403)
+
+    users = get_user_model().objects.order_by("date_joined")
+
+    condensed_user_data = [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "is_staff": u.is_staff,
+            "is_active": u.is_active,
+            "date_joined": u.date_joined,
+            "major": u.major,
+            "skills": u.skills,
+        }
+        for u in users
+    ]
+
+    return JsonResponse({
+        "success": True,
+        "users": condensed_user_data,
+        "user_count": len(condensed_user_data),
+    })
 
 
 @csrf_exempt
