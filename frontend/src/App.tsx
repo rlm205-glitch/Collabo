@@ -9,6 +9,9 @@ import { ProjectViewPage } from './components/ProjectViewPage';
 import { JoinRequestPage } from './components/JoinRequestPage';
 import { JoinRequestsPage } from './components/JoinRequestsPage';
 import { UserProfilePage } from './components/UserProfilePage';
+import VerifyEmail from './components/VerifyEmail';
+import { ForgotPassword } from './components/ForgotPassword';
+import { ResetPassword } from './components/ResetPassword';
 
 
 export type UserRole = 'student' | 'admin';
@@ -94,7 +97,7 @@ function App() {
             timeCommitment: p.workload_per_week || '',
             contactMethod: '',
             contactInfo: '',
-            createdAt: new Date(),
+            createdAt: p.creation_time ? new Date(p.creation_time) : new Date(),
             memberIds: (p.member_ids || []).map(String),
           }));
           setProjects(mapped);
@@ -238,8 +241,6 @@ function App() {
       const text = await res.text();
       return text || 'Failed to create account';
     }
-
-    navigate('/login');
     return null;
   };
 
@@ -283,10 +284,6 @@ function App() {
     if (!res.ok) {
       console.error('Failed to save profile');
     }
-
-    // 3) Best practice: if backend returns updated user, replace local state
-    // const data = await res.json();
-    // setCurrentUser({ ...data.user, createdAt: new Date(data.user.createdAt) });
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
@@ -348,7 +345,7 @@ function App() {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        ...(isAdmin && { credentials: 'include' }), // only add this for admin
+        ...(isAdmin && { credentials: 'include' }), 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: Number(projectId) }),
       });
@@ -401,6 +398,20 @@ function App() {
     }
   };
 
+  const sendLlmMessage = async (query: string): Promise<string> => {
+    const res = await fetch('/llm_api/prompt_llm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ prompt: query }),
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const data = await res.json();
+    return data.response ?? 'No response received.';
+  };
+
   const fetchReports = async () => {
     try {
       const res = await fetch('/project_management/list_reports/', {
@@ -442,8 +453,11 @@ function App() {
   if (!currentUser) {
     return (
       <Routes>
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/create-account" element={<CreateAccountPage onRegister={handleRegister} />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="*"
           element={
@@ -484,6 +498,7 @@ function App() {
           onDeleteProject={deleteProject}
           onReportProject={reportProject}
           onGetProjectDetails={getProjectDetails}
+          onSendLlmMessage={sendLlmMessage}
         />
       } />
       <Route path="/project/:id" element={<ProjectViewPage currentUser={currentUser} />} />

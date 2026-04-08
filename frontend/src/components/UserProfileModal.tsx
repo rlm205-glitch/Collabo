@@ -54,7 +54,7 @@ export function UserProfileModal({ user, onClose, onSave }: UserProfileModalProp
       .map(interest => interest.trim())
       .filter(interest => interest.length > 0);
 
-    onSave({                                              //this onSave function is the same function updateUserProfile from App.tsx and we are giving it arguments
+    onSave({                                              
       ...user,
       first_name: firstName,
       last_name: lastName,
