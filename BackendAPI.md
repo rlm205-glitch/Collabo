@@ -308,6 +308,52 @@
 
 ---
 
+### Am I Member: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/am_i_member`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
+
+```json
+{
+  "project_id": "{project_id}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "is_member": true
+}
+```
+
+---
+
+### Get Members: Via HTTP POST with JSON data
+
+- URL: `{backend_ip}/project_management/get_members`
+- Requires Login (handled automatically by Django)
+- JSON Request Body:
+
+```json
+{
+  "project_id": "{project_id}"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "member_ids": ["{member_user_id_1}", "{member_user_id_2}"]
+}
+```
+
+---
+
 ### Admin Delete Project (Admin): Via HTTP POST with JSON data
 
 - URL: `{backend_ip}/project_management/admin_delete_project`

@@ -13,4 +13,6 @@ urlpatterns = [
     path("admin_delete_project/", views.admin_delete_project, name="admin_delete_project"),
     path("list_join_requests/", views.list_join_requests, name="list_join_requests"),
     path("decide_join_request/", views.decide_join_request, name="decide_join_request"),
+    path("am_i_member/", views.am_i_member, name="am_i_member"),
+    path("get_members/", views.get_members, name="get_members"),
 ]

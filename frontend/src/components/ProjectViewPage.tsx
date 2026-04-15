@@ -3,6 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { User, Project } from '../App';
 import { ArrowLeft, Calendar, Clock, Mail, Tag, User as UserIcon, RefreshCw, Users } from 'lucide-react';
 
+interface Member {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 interface ProjectViewPageProps {
   currentUser: User;
 }
@@ -12,6 +19,40 @@ export function ProjectViewPage({ currentUser }: ProjectViewPageProps) {
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch('/project_management/get_members/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: Number(id) }),
+    })
+      .then(res => res.json())
+      .then(async data => {
+        if (data.success && data.member_ids?.length) {
+          const profiles = await Promise.all(
+            data.member_ids.map((memberId: number) =>
+              fetch('/profile_management/get_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: memberId }),
+              })
+                .then(r => r.json())
+                .then(p => p.success ? {
+                  id: String(memberId),
+                  firstName: p.first_name || '',
+                  lastName: p.last_name || '',
+                  email: p.email || '',
+                } : null)
+                .catch(() => null)
+            )
+          );
+          setMembers(profiles.filter(Boolean) as Member[]);
+        }
+      })
+      .catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     fetch('/project_management/get_project/', {
@@ -140,6 +181,28 @@ export function ProjectViewPage({ currentUser }: ProjectViewPageProps) {
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Active Members */}
+        {members.length > 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="font-bold text-gray-900 mb-3">Active Members</h2>
+            <ul className="space-y-2">
+              {members.map(member => (
+                <li key={member.id} className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate(`/user/${member.id}`)}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {[member.firstName, member.lastName].filter(Boolean).join(' ') || 'Unknown'}
+                  </button>
+                  {member.email && (
+                    <span className="text-sm text-gray-500">{member.email}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

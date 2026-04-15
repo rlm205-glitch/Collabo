@@ -398,3 +398,41 @@ def decide_join_request(request: HttpRequest) -> HttpResponse:
         return HttpResponseBadRequest(b"Project not found")
     except Exception as e:
         return HttpResponseBadRequest(str(e).encode())
+
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def am_i_member(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    try:
+        body = json.loads(request.body)
+        project_id = body.get("project_id")
+        if not project_id:
+            return HttpResponseBadRequest(b"Missing project_id")
+        project = Project.objects.get(id=project_id)
+        is_member = project.members.filter(id=request.user.id).exists()
+        return JsonResponse({"success": True, "is_member": is_member})
+    except Project.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Project not found"}, status=404)
+    except Exception as e:
+        return HttpResponseBadRequest(str(e).encode())
+
+@csrf_exempt
+@login_required(login_url=LOGIN_PAGE_URL)
+def get_members(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
+
+    try:
+        body = json.loads(request.body)
+        project_id = body.get("project_id")
+        if not project_id:
+            return HttpResponseBadRequest(b"Missing project_id")
+        project = Project.objects.get(id=project_id)
+        member_ids = list(project.members.values_list("id", flat=True))
+        return JsonResponse({"success": True, "member_ids": member_ids})
+    except Project.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Project not found"}, status=404)
+    except Exception as e:
+        return HttpResponseBadRequest(str(e).encode())

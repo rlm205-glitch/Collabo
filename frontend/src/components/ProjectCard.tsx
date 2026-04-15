@@ -135,14 +135,23 @@ export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGe
           </p>
           <div className="flex items-center gap-2">
             {isOwner ? (
-              <button
-                type="button"
-                onClick={() => navigate(`/project/${project.id}/requests`)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
-              >
-                <Users className="w-4 h-4" />
-                <span>View Join Requests</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/project/${project.id}`)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors flex-1 justify-center"
+                >
+                  <span>View Project</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/project/${project.id}/requests`)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex-1 justify-center"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>View Join Requests</span>
+                </button>
+              </>
             ) : (
               <>
                 <button
