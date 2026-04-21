@@ -6,14 +6,14 @@ A web platform for CWRU students to discover, create, and join collaborative pro
 
 ## Table of Contents
 
-- [Architecture Overview](#architecture-overview) -done
-- [Tech Stack/ Major Dependencies](#tech-stack-major-dependencies) -done
-- [Installation / Setup Instructions](#installation-setup-instructions) -done
-- [Usage Example](#usage-example) -done
-- [Repository Structure Overview](#repository-structure-overview) -done
-- [Team Member Roles & Contributions](#team-member-roles-contributions) -need to do
-- [Retrospective (Lessons Learned)](#retrospective-lessons-learned) -need to do
-- [License](#license) -done
+- [Architecture Overview](#architecture-overview)
+- [Tech Stack/ Major Dependencies](#tech-stack-major-dependencies) 
+- [Installation / Setup Instructions](#installation-setup-instructions) 
+- [Usage Example](#usage-example) 
+- [Repository Structure Overview](#repository-structure-overview) 
+- [Team Member Roles & Contributions](#team-member-roles-contributions) 
+- [Retrospective (Lessons Learned)](#retrospective-lessons-learned) 
+- [License](#license) 
 
 ---
 
@@ -179,7 +179,22 @@ root/
 
 ## Team Member Roles & Contributions
 
+- Xander Jhaveri and Richard Massalley - Backend development
+- Sonya Popov and Brooke Brocker - Frontend Development
+
 ## Retrospective (Lessons Learned)
+
+## Retrospective (Lessons Learned)
+
+- **Team collaboration worked well.** Dividing the project into frontend and backend responsibilities allowed us to make steady progress without blocking each other.
+
+- **Breaking problems into smaller pieces was important.** Early on, there was a tendency to try to understand the entire system at once, which slowed progress. Focusing on smaller, well-defined tasks made development more manageable.
+
+- **Tooling choices impacted efficiency.** Using tools like GitHub Copilot within the development environment would have been more efficient than relying on external tools that required constant context switching.
+
+- **Overall, the development process was smooth, but future improvements could include:**  
+  - more upfront planning of component interactions and API structure  
+  - increased use of integrated development tools to speed up implementation
 
 ## License
 
