@@ -13,6 +13,7 @@ A web platform for CWRU students to discover, create, and join collaborative pro
 - [Repository Structure Overview](#repository-structure-overview) 
 - [Team Member Roles & Contributions](#team-member-roles-contributions) 
 - [Retrospective (Lessons Learned)](#retrospective-lessons-learned) 
+- [Coverage Report (Quality Artifact)](#coverage-report-quality-artifact))
 - [License](#license) 
 
 ---
@@ -195,6 +196,40 @@ root/
 - **Overall, the development process was smooth, but future improvements could include:**  
   - more upfront planning of component interactions and API structure  
   - increased use of integrated development tools to speed up implementation
+
+## Coverage Report (Quality Artifact)
+
+Frontend testing was performed using mock-based tests with Vitest, and coverage metrics were collected.
+
+### Overall Coverage
+
+| Metric     | Coverage |
+|------------|----------|
+| Statements | 63.3%    |
+| Branches   | 50.45%   |
+| Functions  | 57.89%   |
+| Lines      | 66.66%   |
+
+### Per-File Coverage
+
+- **StudentDashboard.tsx:** lower coverage (≈45–48% across metrics)
+- **UserProfileModal.tsx:** high coverage (≈100% for most metrics)
+
+### What is Covered
+
+Tests are based on functional test cases:
+
+- User Profile: TC_UP_01 – TC_UP_07
+- Project Browsing & Filtering: TC_PBF_01 – TC_PBF_06
+
+Test files:
+
+- StudentDashboard.test.tsx
+- UserProfileModal.test.tsx
+
+### Notes
+
+Lower coverage in StudentDashboard.tsx is due to additional functionality in that component that was not included in the defined functional test cases. This highlights areas for future test expansion, especially for branching logic.
 
 ## License
 
