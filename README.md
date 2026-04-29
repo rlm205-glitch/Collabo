@@ -89,7 +89,7 @@ uv run manage.py migrate
 uv run manage.py runserver
 ```
 
-The API and frontend (if built) will be available at `http://localhost:8000`.
+The API and frontend (if built) will be available at `https://localhost:8000`.
 
 To run the test suite:
 
