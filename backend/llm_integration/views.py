@@ -1,3 +1,5 @@
+"""Views for the LLM-powered project recommendation assistant."""
+
 from sqlite3 import IntegrityError
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -41,9 +43,23 @@ Key Rules:
 - If no projects are a good match, tell the user honestly rather than forcing poor recommendations.
 """
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def prompt_llm(request: HttpRequest) -> HttpResponse:
+    """Send a user prompt to the local Ollama LLM and return its response.
+
+    The LLM has access to tool functions for listing projects, fetching project
+    details, and looking up user profiles. It runs in an agentic loop for up to
+    25 iterations to allow multi-step tool use before producing a final answer.
+
+    Args:
+        request: POST request with a JSON body containing prompt (str).
+
+    Returns:
+        JsonResponse with the LLM's final text response on success, or a
+        400 error if the model errors or exceeds the iteration limit.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -57,6 +73,7 @@ def prompt_llm(request: HttpRequest) -> HttpResponse:
         Gets the profile of the current user, returning their skills, interests, availability, and more.
         """
         return get_profile(user_id)
+
     def link_to_project(id: int):
         """
         Returns a link to the page of a project given the project id.
@@ -65,14 +82,13 @@ def prompt_llm(request: HttpRequest) -> HttpResponse:
         """
         return create_link_to_project(id, base_url)
 
-    available_tools= {
+    available_tools = {
         'list_projects': list_projects,
         'get_project': get_project,
         'get_self_profile': get_self_profile,
         'get_profile': get_profile,
         'link_to_project': link_to_project,
     }
-
 
     tools = [list_projects, get_project, get_self_profile, get_profile, link_to_project]
 

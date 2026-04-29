@@ -1,5 +1,7 @@
 /**
- * StudentDashboard.test.tsx
+ * @file StudentDashboard.test.tsx
+ * @description Unit tests for the StudentDashboard component covering project
+ * browsing and filtering requirements (TC_PBF_01 – TC_PBF_06).
  *
  * Tests: TC_PBF_01 – TC_PBF_06
  *

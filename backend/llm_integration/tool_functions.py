@@ -1,11 +1,16 @@
+"""Tool functions exposed to the LLM for project and profile lookups."""
+
 from project_management.models import Project
 from django.contrib.auth import get_user_model
 from user_authentication.models import CollaboUser
 
 
-def list_projects():
-    """
-    List all projects available for users to join with condensed data about the projects. This will return a list of dictionaries containing project data.
+def list_projects() -> dict:
+    """Return condensed data for all projects available to join.
+
+    Returns:
+        A dict with keys success (bool), condensed_projects (list of dicts),
+        and project_count (int).
     """
     try:
         projects = Project.objects.prefetch_related('members').all()
@@ -35,11 +40,14 @@ def list_projects():
         return {"success": False, "error": f"Failed to retrieve projects: {str(e)}"}
 
 
-def get_project(id: int):
-    """
-    Get information about a project. Returns a dictionary detailed data about a specific project given its project id. Use this function to give users specific data about projects or to narrow down your recommendations to the finer details.
+def get_project(id: int) -> dict:
+    """Return detailed information about a single project.
+
     Args:
-        id: The project id of the project information to return
+        id: The primary key of the project to retrieve.
+
+    Returns:
+        A dict with keys success (bool) and project (dict of project fields).
     """
     try:
         project = Project.objects.get(id=id)
@@ -66,11 +74,16 @@ def get_project(id: int):
     except Exception as e:
         return {"success": False, "error": f"Failed to get project: {str(e)}"}
 
-def get_profile(user_id: int):
-    """
-    Gets a user's profile. This will give information about their preferences, skills, interests, and availability.
+
+def get_profile(user_id: int) -> dict:
+    """Return a user's profile including skills, interests, and availability.
+
     Args:
-        user_id: the user_id of the user information to return
+        user_id: The primary key of the user to look up.
+
+    Returns:
+        A dict with success (bool) and profile fields on success, or an
+        error message on failure.
     """
     try:
         user = CollaboUser.objects.get(id=user_id)
@@ -92,6 +105,15 @@ def get_profile(user_id: int):
     except Exception:
         return {"success": False, "error": "Failed to get user profile"}
 
-def create_link_to_project(id: int, base_url: str):
+
+def create_link_to_project(id: int, base_url: str) -> str:
+    """Build a URL pointing to a project's detail page.
+
+    Args:
+        id: The project's primary key.
+        base_url: The site's base URL including trailing slash.
+
+    Returns:
+        A full URL string for the project page.
+    """
     return base_url + "project/" + str(id)
-    

@@ -1,3 +1,5 @@
+"""Views for reading and updating user profile data."""
+
 import json
 from typing import Any
 from django.contrib.auth import login
@@ -10,9 +12,22 @@ from django.views.decorators.csrf import csrf_exempt
 from project_management.views import HOME_PAGE_URL, LOGIN_PAGE_URL
 from user_authentication.models import CollaboUser
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def update_profile(request: HttpRequest) -> HttpResponse:
+    """Update the current user's profile fields.
+
+    Any field omitted from the request body is left unchanged.
+
+    Args:
+        request: POST request with a JSON body containing any combination of:
+            first_name, last_name, email, major, skills, interests,
+            availability, preferred_contact_method, and notification flags.
+
+    Returns:
+        JsonResponse with success status and the user's id.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -24,9 +39,7 @@ def update_profile(request: HttpRequest) -> HttpResponse:
     user_id = request.user.id
 
     try:
-        user = CollaboUser.objects.get(
-            id=user_id
-        )
+        user = CollaboUser.objects.get(id=user_id)
 
         user.first_name = json_body.get("first_name", user.first_name)
         user.last_name = json_body.get("last_name", user.last_name)
@@ -47,9 +60,18 @@ def update_profile(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"success": False, "error": "Failed to update user profile"})
     return JsonResponse({"success": True, "id": user.id})
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def get_self_profile(request: HttpRequest) -> HttpResponse:
+    """Return the full profile of the currently authenticated user.
+
+    Args:
+        request: GET request. No body required.
+
+    Returns:
+        JsonResponse containing all profile fields for the logged-in user.
+    """
     if request.method != "GET":
         return HttpResponseBadRequest(b"HTTP method must be GET")
 
@@ -60,9 +82,7 @@ def get_self_profile(request: HttpRequest) -> HttpResponse:
 
     try:
         user_id = request.user.id
-        user = CollaboUser.objects.get(
-            id=user_id
-        )
+        user = CollaboUser.objects.get(id=user_id)
 
         res["id"] = user_id
         res["first_name"] = user.first_name
@@ -83,9 +103,18 @@ def get_self_profile(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"success": False, "error": "Failed to get profile"})
     return JsonResponse(res)
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def get_profile(request: HttpRequest) -> HttpResponse:
+    """Return the public profile of any user by their id.
+
+    Args:
+        request: POST request with JSON body containing id (int).
+
+    Returns:
+        JsonResponse with the target user's public profile fields.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -102,9 +131,7 @@ def get_profile(request: HttpRequest) -> HttpResponse:
         if user_id is None:
             return JsonResponse({"success": False, "error": "No user id supplied"})
 
-        user = CollaboUser.objects.get(
-            id=user_id
-        )
+        user = CollaboUser.objects.get(id=user_id)
 
         res["first_name"] = user.first_name
         res["last_name"] = user.last_name

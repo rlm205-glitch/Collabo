@@ -1,13 +1,25 @@
+/**
+ * @file LoginPage.tsx
+ * @description Login form for existing users. Handles email/password submission,
+ * displays errors, and offers a "resend verification email" flow for unverified accounts.
+ */
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 
+/** Props for the LoginPage component. */
 interface LoginPageProps {
+  /** Callback that authenticates the user; returns an error string or null. */
   onLogin: (email: string, password: string) => Promise<string | null>;
 }
 
 const UNVERIFIED_ERROR = 'Please verify your email before logging in.';
 
+/**
+ * Login page component. Validates that fields are non-empty before calling
+ * onLogin. Shows a resend-verification button when the account is unverified.
+ */
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

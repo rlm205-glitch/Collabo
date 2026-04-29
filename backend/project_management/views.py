@@ -1,3 +1,5 @@
+"""Views for project CRUD, join requests, reports, and admin moderation."""
+
 import json
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -19,9 +21,20 @@ from django.core.mail import send_mail
 LOGIN_PAGE_URL: str = "http://localhost:5173/login"
 HOME_PAGE_URL: str = "http://localhost:5173/home"
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def create_project(request: HttpRequest) -> HttpResponse:
+    """Create a new project and add the creator as its first member.
+
+    Expects a POST request with a JSON body containing project fields.
+
+    Args:
+        request: The incoming HTTP request with project data in the body.
+
+    Returns:
+        JsonResponse with success status and the new project id.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -29,7 +42,6 @@ def create_project(request: HttpRequest) -> HttpResponse:
 
     if not request.user.is_authenticated:
         return HttpResponseBadRequest(b"Couldn't Validate Account")
-
 
     try:
         project = Project.objects.create(
@@ -46,7 +58,7 @@ def create_project(request: HttpRequest) -> HttpResponse:
             contact_information=json_body.get("contact_information"),
         )
 
-        project.members.add(request.user) # type: ignore_errors
+        project.members.add(request.user)  # type: ignore_errors
 
     except IntegrityError:
         return HttpResponseBadRequest(b"This project has been created already")
@@ -55,10 +67,22 @@ def create_project(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse({"success": True, "id": project.id, "redirect_url": HOME_PAGE_URL})
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def join_project(request: HttpRequest) -> HttpResponse:
-    """Should log a request without automatically adding the user, project members must accept it."""
+    """Submit a join request for an existing project.
+
+    If the user is already a member the call succeeds silently. Otherwise a
+    pending Join_Request is created and project members are emailed.
+
+    Args:
+        request: POST request with JSON body containing project_id and
+            an optional message string.
+
+    Returns:
+        JsonResponse indicating success or a bad-request error.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -74,7 +98,6 @@ def join_project(request: HttpRequest) -> HttpResponse:
             return HttpResponseBadRequest(b"Missing project id")
         project = Project.objects.get(id=project_id)
 
-        #if member already do nothing
         if project.members.filter(id=request.user.id).exists():
             return JsonResponse({"success": True, "redirect_url": HOME_PAGE_URL})
 
@@ -89,9 +112,20 @@ def join_project(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         return HttpResponseBadRequest(str(e).encode())
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def list_projects(request: HttpRequest) -> HttpResponse:
+    """Return a condensed list of all projects, with optional filtering and sorting.
+
+    Args:
+        request: POST request with optional JSON body fields:
+            sortkey (str): Field name to sort by (default 'title').
+            filters (dict or list): Django ORM filter kwargs to apply.
+
+    Returns:
+        JsonResponse with condensed_projects list and project_count.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -127,7 +161,7 @@ def list_projects(request: HttpRequest) -> HttpResponse:
             for p in projects
         ]
 
-        return JsonResponse({ "success": True,
+        return JsonResponse({"success": True,
             "condensed_projects": condensed_project_data,
             "project_count": len(condensed_project_data)
         })
@@ -137,10 +171,20 @@ def list_projects(request: HttpRequest) -> HttpResponse:
             "success": False,
             "error": f"Failed to retrieve projects: {str(e)}"
         })
-    
+
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def get_project(request: HttpRequest) -> HttpResponse:
+    """Return full details for a single project by id.
+
+    Args:
+        request: POST request with JSON body containing id (int).
+
+    Returns:
+        JsonResponse with a project dict including author name fields and
+        current member ids.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -183,9 +227,20 @@ def get_project(request: HttpRequest) -> HttpResponse:
     except Exception:
         return JsonResponse({"success": False, "error": "Failed to get project"})
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def delete_project(request: HttpRequest) -> HttpResponse:
+    """Delete a project owned by the current user.
+
+    Only the project's original author may delete it.
+
+    Args:
+        request: POST request with JSON body containing id (int).
+
+    Returns:
+        JsonResponse indicating success or an error message.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -209,6 +264,17 @@ def delete_project(request: HttpRequest) -> HttpResponse:
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def report_project(request: HttpRequest) -> HttpResponse:
+    """Submit a moderation report against a project.
+
+    Each user may only report a given project once.
+
+    Args:
+        request: POST request with JSON body containing project_id, reason,
+            and an optional description string.
+
+    Returns:
+        JsonResponse with the new report id on success.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -244,6 +310,14 @@ def report_project(request: HttpRequest) -> HttpResponse:
 @login_required(login_url=LOGIN_PAGE_URL)
 @staff_required
 def list_reports(request: HttpRequest) -> HttpResponse:
+    """Return all moderation reports, optionally filtered by project. Staff only.
+
+    Args:
+        request: POST request with optional JSON body field project_id (int).
+
+    Returns:
+        JsonResponse with a reports list and report_count.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -280,6 +354,14 @@ def list_reports(request: HttpRequest) -> HttpResponse:
 @login_required(login_url=LOGIN_PAGE_URL)
 @staff_required
 def admin_delete_project(request: HttpRequest) -> HttpResponse:
+    """Delete any project regardless of ownership. Staff only.
+
+    Args:
+        request: POST request with JSON body containing id (int).
+
+    Returns:
+        JsonResponse indicating success or a not-found error.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -292,9 +374,21 @@ def admin_delete_project(request: HttpRequest) -> HttpResponse:
     except Project.DoesNotExist:
         return JsonResponse({"success": False, "error": "Project not found"}, status=404)
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def update_project(request: HttpRequest) -> HttpResponse:
+    """Update editable fields on an existing project.
+
+    Only the project's author may perform updates.
+
+    Args:
+        request: POST request with JSON body containing id (int) and any
+            subset of the editable fields.
+
+    Returns:
+        JsonResponse indicating success, or a 403/404 on failure.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -319,11 +413,20 @@ def update_project(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"success": True})
 
 
-"""Implement accept/reject functions"""
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def list_join_requests(request: HttpRequest) -> HttpResponse:
-    if request.method != "POST": #or GET if we don't want changes
+    """Return all pending join requests for a project.
+
+    Only current members of the project may view requests.
+
+    Args:
+        request: POST request with JSON body containing project_id (int).
+
+    Returns:
+        JsonResponse with a data list of pending join request dicts.
+    """
+    if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
     body = json.loads(request.body)
@@ -332,7 +435,6 @@ def list_join_requests(request: HttpRequest) -> HttpResponse:
         return HttpResponseBadRequest(b"Missing project id")
     project = Project.objects.get(id=project_id)
 
-    #Right now, only members can view. Could restrict to owner later
     if not project.members.filter(id=request.user.id).exists():
         return HttpResponseForbidden(b"Permission denied")
 
@@ -354,15 +456,29 @@ def list_join_requests(request: HttpRequest) -> HttpResponse:
     ]
     return JsonResponse({"success": True, "data": data})
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def decide_join_request(request: HttpRequest) -> HttpResponse:
-    if request.method != "POST": return HttpResponseBadRequest(b"HTTP method must be POST")
+    """Approve or reject a pending join request.
+
+    Only current project members may decide. Approving atomically adds the
+    requester to the project's member set and sends a notification email.
+
+    Args:
+        request: POST request with JSON body containing join_request_id (int),
+            decision ('approved' or 'rejected'), and optional reply_message.
+
+    Returns:
+        JsonResponse with the resulting status string.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest(b"HTTP method must be POST")
 
     try:
         body = json.loads(request.body)
         join_request_id = body.get("join_request_id")
-        decision = body.get("decision")#approved or rejected for the frontend
+        decision = body.get("decision")
         reply_message = body.get("reply_message")
 
         if not join_request_id or decision not in ("approved", "rejected"):
@@ -371,11 +487,9 @@ def decide_join_request(request: HttpRequest) -> HttpResponse:
         jr = Join_Request.objects.select_related("project", "requester").get(id=join_request_id)
         project = jr.project
 
-        #project members can decide
         if not project.members.filter(id=request.user.id).exists():
             return HttpResponseForbidden(b"Permission denied")
 
-        #only decide pending requests
         if jr.status != "pending":
             return JsonResponse({"success": True, "status": jr.status})
 
@@ -389,7 +503,6 @@ def decide_join_request(request: HttpRequest) -> HttpResponse:
         else:
             jr.status = "rejected"
             jr.save(update_fields=["status"])
-
             send_join_decision_email(project, jr.requester, "rejected", reply_message)
             return JsonResponse({"success": True, "status": "rejected"})
     except Join_Request.DoesNotExist:
@@ -399,9 +512,18 @@ def decide_join_request(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         return HttpResponseBadRequest(str(e).encode())
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def am_i_member(request: HttpRequest) -> HttpResponse:
+    """Check whether the current user is a member of a given project.
+
+    Args:
+        request: POST request with JSON body containing project_id (int).
+
+    Returns:
+        JsonResponse with is_member boolean.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -418,9 +540,18 @@ def am_i_member(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         return HttpResponseBadRequest(str(e).encode())
 
+
 @csrf_exempt
 @login_required(login_url=LOGIN_PAGE_URL)
 def get_members(request: HttpRequest) -> HttpResponse:
+    """Return the list of member user ids for a given project.
+
+    Args:
+        request: POST request with JSON body containing project_id (int).
+
+    Returns:
+        JsonResponse with member_ids list.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
