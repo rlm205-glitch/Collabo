@@ -1,9 +1,16 @@
+/**
+ * @file ProjectCard.tsx
+ * @description Displays a summary card for a single project with options to view details,
+ * edit (if owner), report, or delete.
+ */
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Project, User } from '../App';
 import { Calendar, Clock, Edit2, Trash2, Flag, AlertCircle, Users } from 'lucide-react';
 import { EditProjectModal } from './EditProjectModal';
 
+/** Props for the ProjectCard component. */
 interface ProjectCardProps {
   project: Project;
   currentUser: User;
@@ -18,6 +25,10 @@ interface ProjectCardProps {
   onGetProjectDetails: (projectId: string) => Promise<Project | null>;
 }
 
+/**
+ * Card component showing project summary info. Fetches full project details
+ * lazily on first expand. Owners see Edit/Delete controls; others see Report.
+ */
 export function ProjectCard({ project, isOwner, onEdit, onDelete, onReport, onGetProjectDetails }: ProjectCardProps) {
   const navigate = useNavigate();
   const [showEditModal, setShowEditModal] = useState(false);

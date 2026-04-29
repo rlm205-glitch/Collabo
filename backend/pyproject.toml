@@ -13,4 +13,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["django-stubs>=5.2.9"]
+dev = [
+    "django-stubs>=5.2.9",
+    "pdoc>=16.0.0",
+]

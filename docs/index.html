@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collabo – API Documentation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      max-width: 700px;
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 { font-size: 2.2rem; margin-bottom: 0.4rem; }
+    .subtitle { color: #555; margin-bottom: 2.5rem; font-size: 1.05rem; }
+    .cards {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex: 1;
+      min-width: 220px;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    .card-icon { font-size: 2.4rem; margin-bottom: 0.75rem; }
+    .card h2 { font-size: 1.2rem; margin-bottom: 0.4rem; }
+    .card p { font-size: 0.9rem; color: #666; }
+    .badge {
+      display: inline-block;
+      margin-top: 0.6rem;
+      background: #e8f0fe;
+      color: #3b5bdb;
+      border-radius: 20px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    footer { margin-top: 3rem; font-size: 0.82rem; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Collabo Docs</h1>
+    <p class="subtitle">API and source-code documentation for the Collabo project collaboration platform</p>
+
+    <div class="cards">
+      <a class="card" href="backend/index.html">
+        <div class="card-icon">🐍</div>
+        <h2>Backend API</h2>
+        <p>Django views, models, and helpers across all five apps</p>
+        <span class="badge">pdoc</span>
+      </a>
+
+      <a class="card" href="frontend/index.html">
+        <div class="card-icon">⚛️</div>
+        <h2>Frontend</h2>
+        <p>React components, TypeScript interfaces, and utility functions</p>
+        <span class="badge">TypeDoc</span>
+      </a>
+    </div>
+
+    <footer>Collabo &mdash; CWRU Project Collaboration Platform</footer>
+  </div>
+</body>
+</html>

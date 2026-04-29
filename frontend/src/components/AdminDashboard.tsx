@@ -1,7 +1,13 @@
+/**
+ * @file AdminDashboard.tsx
+ * @description Admin-only dashboard for moderating projects, viewing reports, and managing users.
+ */
+
 import { useState } from 'react';
 import type { User, Project, Report } from '../App';
 import { Shield, LogOut, AlertTriangle, Trash2, Users } from 'lucide-react';
 
+/** Props for the AdminDashboard component. */
 interface AdminDashboardProps {
   currentUser: User;
   projects: Project[];
@@ -11,6 +17,10 @@ interface AdminDashboardProps {
   onDeleteProject: (projectId: string) => void;
 }
 
+/**
+ * Admin dashboard with tabs for Reports, Projects, and Users.
+ * Allows staff to review flagged content and delete projects.
+ */
 export function AdminDashboard({
   projects,
   reports,

@@ -1,5 +1,7 @@
 /**
- * UserprofileModal.test.tsx
+ * @file UserProfileModal.test.tsx
+ * @description Unit tests for the UserProfileModal component covering profile
+ * viewing and editing requirements (TC_UP_01 – TC_UP_07).
  *
  * Tests: TC_UP_01 – TC_UP_07
  *

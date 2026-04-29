@@ -1,3 +1,9 @@
+/**
+ * @file StudentDashboard.tsx
+ * @description Main dashboard for authenticated students. Displays all active projects
+ * with search, filter, and sort controls. Also hosts the LLM chat assistant panel.
+ */
+
 import { useState } from 'react';
 import type { User, Project } from '../App';
 import { Search, Filter, Plus, UserCircle, LogOut, MessageSquare, X, Send, Bot } from 'lucide-react';
@@ -5,6 +11,7 @@ import { ProjectCard } from './ProjectCard';
 import { CreateProjectModal } from './CreateProjectModal';
 import { UserProfileModal } from './UserProfileModal';
 
+/** Props for the StudentDashboard component. */
 interface StudentDashboardProps {
   currentUser: User;
   projects: Project[];
@@ -19,6 +26,10 @@ interface StudentDashboardProps {
   onSendLlmMessage: (query: string) => Promise<string>;
 }
 
+/**
+ * Student-facing dashboard showing browsable and filterable project listings,
+ * project creation, profile editing, and the LLM recommendation assistant.
+ */
 export function StudentDashboard({
   currentUser,
   projects,

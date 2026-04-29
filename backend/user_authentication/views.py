@@ -1,3 +1,5 @@
+"""Views for user registration, login, logout, and password/email management."""
+
 from .models import CollaboUser, EmailVerificationToken, PasswordResetToken
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -18,6 +20,18 @@ import secrets
 
 @csrf_exempt
 def register_user(request: HttpRequest) -> HttpResponse:
+    """Register a new user account with a CWRU email address.
+
+    Creates the account in an inactive state and sends a verification email.
+    The account cannot be used until the email link is clicked.
+
+    Args:
+        request: POST request with JSON body containing email, password,
+            first_name, and last_name.
+
+    Returns:
+        JsonResponse with success status and a redirect_url on success.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -69,6 +83,15 @@ def register_user(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def login_user(request: HttpRequest) -> HttpResponse:
+    """Authenticate a user and start a session.
+
+    Args:
+        request: POST request with JSON body containing email and password.
+
+    Returns:
+        JsonResponse with user profile fields and session cookie on success,
+        or a 400/403 error with an error message on failure.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -97,19 +120,19 @@ def login_user(request: HttpRequest) -> HttpResponse:
         return JsonResponse({
             "success": True,
             "redirect_url": request.build_absolute_uri('/'),
-            "id": user.id, # pyright: ignore
-            "first_name": user.first_name, # pyright: ignore
-            "last_name": user.last_name, # pyright: ignore
-            "username": user.username, # pyright: ignore
-            "email": user.email, # pyright: ignore
-            "major": user.major, # pyright: ignore
-            "skills": user.skills, # pyright: ignore
-            "interests": user.interests, # pyright: ignore
-            "availability": user.availability, # pyright: ignore
-            "preferred_contact_method": user.preferred_contact_method, # pyright: ignore
-            "active_project_notifications": user.active_project_notifications, # pyright: ignore
-            "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
-            "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "id": user.id,  # pyright: ignore
+            "first_name": user.first_name,  # pyright: ignore
+            "last_name": user.last_name,  # pyright: ignore
+            "username": user.username,  # pyright: ignore
+            "email": user.email,  # pyright: ignore
+            "major": user.major,  # pyright: ignore
+            "skills": user.skills,  # pyright: ignore
+            "interests": user.interests,  # pyright: ignore
+            "availability": user.availability,  # pyright: ignore
+            "preferred_contact_method": user.preferred_contact_method,  # pyright: ignore
+            "active_project_notifications": user.active_project_notifications,  # pyright: ignore
+            "project_expiration_notifications": user.project_expiration_notifications,  # pyright: ignore
+            "weekly_update_notifications": user.weekly_update_notifications,  # pyright: ignore
             "is_staff": user.is_staff
         })
 
@@ -120,23 +143,33 @@ def login_user(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def whoami(request: HttpRequest) -> HttpResponse:
+    """Return the profile of the currently authenticated user.
+
+    Used on page load to restore session state in the frontend.
+
+    Args:
+        request: Any HTTP request; authentication state is checked via session.
+
+    Returns:
+        JsonResponse with full user profile if authenticated, or 401 if not.
+    """
     if request.user.is_authenticated:
         user = request.user
         return JsonResponse({
             "success": True,
-            "id": user.id, # pyright: ignore
-            "first_name": user.first_name, # pyright: ignore
-            "last_name": user.last_name, # pyright: ignore
-            "username": user.username, # pyright: ignore
-            "email": user.email, # pyright: ignore
-            "major": user.major, # pyright: ignore
-            "skills": user.skills, # pyright: ignore
-            "interests": user.interests, # pyright: ignore
-            "availability": user.availability, # pyright: ignore
-            "preferred_contact_method": user.preferred_contact_method, # pyright: ignore
-            "active_project_notifications": user.active_project_notifications, # pyright: ignore
-            "project_expiration_notifications": user.project_expiration_notifications, # pyright: ignore
-            "weekly_update_notifications": user.weekly_update_notifications, # pyright: ignore
+            "id": user.id,  # pyright: ignore
+            "first_name": user.first_name,  # pyright: ignore
+            "last_name": user.last_name,  # pyright: ignore
+            "username": user.username,  # pyright: ignore
+            "email": user.email,  # pyright: ignore
+            "major": user.major,  # pyright: ignore
+            "skills": user.skills,  # pyright: ignore
+            "interests": user.interests,  # pyright: ignore
+            "availability": user.availability,  # pyright: ignore
+            "preferred_contact_method": user.preferred_contact_method,  # pyright: ignore
+            "active_project_notifications": user.active_project_notifications,  # pyright: ignore
+            "project_expiration_notifications": user.project_expiration_notifications,  # pyright: ignore
+            "weekly_update_notifications": user.weekly_update_notifications,  # pyright: ignore
             "is_staff": user.is_staff
         })
     return JsonResponse({"success": False}, status=401)
@@ -144,13 +177,29 @@ def whoami(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def logout_user(request: HttpRequest) -> HttpResponse:
+    """Log out the current user and destroy their session.
+
+    Args:
+        request: Any HTTP request with an active session.
+
+    Returns:
+        JsonResponse with success: True.
+    """
     logout(request)
     return JsonResponse({"success": True})
 
 
-
 @csrf_exempt
 def verify_email(request: HttpRequest) -> HttpResponse:
+    """Activate a user account using a one-time email verification token.
+
+    Args:
+        request: POST request with JSON body containing token (str).
+
+    Returns:
+        JsonResponse with success: True on activation. Returns
+        already_verified: True if the token was already used.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -167,7 +216,6 @@ def verify_email(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"success": False, "error": "Invalid token"}, status=400)
 
     if rec.used_at is not None:
-        # treat as success so repeated calls don't look like failure
         return JsonResponse({"success": True, "already_verified": True})
 
     if timezone.now() >= rec.expires_at:
@@ -182,19 +230,28 @@ def verify_email(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse({"success": True})
 
+
 @csrf_exempt
 def resend_verification_email(request: HttpRequest) -> HttpResponse:
+    """Resend a verification email for an unverified account.
+
+    Always returns success to avoid leaking whether an email is registered.
+
+    Args:
+        request: POST request with JSON body containing email (str).
+
+    Returns:
+        JsonResponse with success: True regardless of outcome.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
     json_body = dict(json.loads(request.body))
     email = (json_body.get("email") or "").strip()
 
-    # Always return success to avoid leaking whether an email exists
     try:
         user = CollaboUser.objects.get(username=email)
         if not user.is_active:
-            # Invalidate any existing unused tokens
             EmailVerificationToken.objects.filter(user=user, used_at__isnull=True).delete()
 
             raw_token = secrets.token_urlsafe(16)
@@ -223,13 +280,22 @@ def resend_verification_email(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def forgot_password(request: HttpRequest) -> HttpResponse:
+    """Send a password-reset email for the given account.
+
+    Always returns success to avoid leaking whether an email is registered.
+
+    Args:
+        request: POST request with JSON body containing email (str).
+
+    Returns:
+        JsonResponse with success: True regardless of outcome.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
     json_body = dict(json.loads(request.body))
     email = (json_body.get("email") or "").strip()
 
-    # always return success so we don't leak whether an email exists
     try:
         user = CollaboUser.objects.get(username=email)
 
@@ -258,6 +324,14 @@ def forgot_password(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def list_users(request: HttpRequest) -> HttpResponse:
+    """Return a list of all registered users. Staff only.
+
+    Args:
+        request: POST request. Must be authenticated as a staff user.
+
+    Returns:
+        JsonResponse with users list and user_count, or 401/403 on auth failure.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -294,6 +368,16 @@ def list_users(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def reset_password(request: HttpRequest) -> HttpResponse:
+    """Reset a user's password using a one-time reset token.
+
+    Args:
+        request: POST request with JSON body containing token (str) and
+            password (str) for the new password.
+
+    Returns:
+        JsonResponse with success: True, or an error message if the token
+        is invalid/expired or the new password fails validation.
+    """
     if request.method != "POST":
         return HttpResponseBadRequest(b"HTTP method must be POST")
 
@@ -317,7 +401,6 @@ def reset_password(request: HttpRequest) -> HttpResponse:
     if timezone.now() >= rec.expires_at:
         return JsonResponse({"success": False, "error": "Token expired"}, status=400)
 
-    # validate new password using Django's built-in validators
     try:
         validate_password(new_password, user=rec.user)
     except ValidationError as e:

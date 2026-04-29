@@ -1,3 +1,9 @@
+/**
+ * @file App.tsx
+ * @description Root application component. Manages global auth state, project/user/report
+ * data, and renders either the student or admin dashboard based on the logged-in user's role.
+ */
+
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
@@ -14,14 +20,17 @@ import { ForgotPassword } from './components/ForgotPassword';
 import { ResetPassword } from './components/ResetPassword';
 
 
+/** The role assigned to a logged-in user, determining which dashboard is shown. */
 export type UserRole = 'student' | 'admin';
 
+/** Represents an authenticated Collabo user. */
 export interface User {
   id: string;
   first_name: string;
   last_name: string;
   username: string;
   email: string;
+  /** Determines whether the admin or student dashboard is rendered. */
   role: UserRole;
   major?: string;
   skills?: string[];
@@ -34,13 +43,17 @@ export interface User {
   createdAt: Date;
 }
 
+/** Represents a collaboration project posted on the platform. */
 export interface Project {
   id: string;
+  /** ID of the user who created the project. */
   userId: string;
   userName: string;
   userEmail: string;
   title: string;
+  /** Short summary shown on project cards. */
   description: string;
+  /** Full project description shown on the detail page. */
   fullDescription?: string;
   projectType: string;
   preferredSkills: string[];
@@ -52,9 +65,11 @@ export interface Project {
   updatedTime?: string;
   isActive: boolean;
   reportCount?: number;
+  /** IDs of users who have joined the project. */
   memberIds?: string[];
 }
 
+/** Represents a moderation report filed against a project. */
 export interface Report {
   id: string;
   projectId: string;
@@ -65,6 +80,13 @@ export interface Report {
   createdAt: Date;
 }
 
+/**
+ * Root application component.
+ *
+ * Restores the user session on mount via `/authentication/whoami/`, then
+ * fetches projects (and, for admins, users and reports). Renders the
+ * appropriate dashboard based on `currentUser.role`.
+ */
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -73,6 +95,7 @@ function App() {
   const [reports, setReports] = useState<Report[]>([]);
   const navigate = useNavigate();
 
+  /** Fetch all projects from the backend and store them in state. */
   const fetchProjects = async () => {
     try {
       const res = await fetch('/project_management/list_projects/', {
@@ -108,6 +131,11 @@ function App() {
     }
   };
 
+  /**
+   * Fetch full details for a single project.
+   * @param projectId - The string ID of the project to fetch.
+   * @returns A fully-populated Project object, or null on failure.
+   */
   const getProjectDetails = async (projectId: string): Promise<Project | null> => {
     try {
       const res = await fetch('/project_management/get_project/', {
@@ -191,6 +219,12 @@ function App() {
     }
   }, [currentUser]);
 
+  /**
+   * Authenticate the user with the backend and populate global state.
+   * @param email - The user's CWRU email address.
+   * @param password - The user's password.
+   * @returns An error message string on failure, or null on success.
+   */
   const handleLogin = async (email: string, password: string): Promise<string | null> => {
     const res = await fetch('/authentication/login/', {
       method: 'POST',
@@ -226,6 +260,10 @@ function App() {
     return null;
   };
 
+  /**
+   * Register a new user account.
+   * @returns An error message string on failure, or null on success.
+   */
   const handleRegister = async (
     email: string,
     password: string,
@@ -245,6 +283,7 @@ function App() {
     return null;
   };
 
+  /** Log out the current user, clear state, and navigate to the home page. */
   const handleLogout = async () => {
     await fetch('/authentication/logout/', {
       method: 'POST',
@@ -254,7 +293,12 @@ function App() {
     navigate('/');
   };
 
-  const updateUserProfile = async (updatedUser: User): Promise<void> => { //this takes a User object (gets it from UserprofileModal where the user updates their profile fields)
+  /**
+   * Update the current user's profile — updates local state immediately, then
+   * persists the change to the backend.
+   * @param updatedUser - The full User object with updated field values.
+   */
+  const updateUserProfile = async (updatedUser: User): Promise<void> => {
     //sets the currentUser object to those fields 
     //and sends the data to the backend
 
@@ -287,6 +331,10 @@ function App() {
     }
   };
 
+  /**
+   * Create a new project on the backend and refresh the project list.
+   * @param project - Project data without id or createdAt (assigned by server).
+   */
   const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
     try {
       const res = await fetch('/project_management/create_project/', {
@@ -312,6 +360,11 @@ function App() {
     }
   };
 
+  /**
+   * Apply partial updates to an existing project.
+   * @param projectId - ID of the project to update.
+   * @param updates - Partial Project fields to merge in.
+   */
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
     setProjects(projects.map(p => p.id === projectId ? { ...p, ...updates } : p));
 
@@ -336,6 +389,10 @@ function App() {
     }
   };
 
+  /**
+   * Delete a project. Admins use the admin endpoint; owners use the standard one.
+   * @param projectId - ID of the project to delete.
+   */
   const deleteProject = async (projectId: string) => {
     try {
       const isAdmin = currentUser?.role === 'admin';
@@ -364,6 +421,12 @@ function App() {
     }
   };
 
+  /**
+   * Submit a moderation report against a project.
+   * @param projectId - ID of the project being reported.
+   * @param reason - Category of the report.
+   * @param description - Optional additional details.
+   */
   const reportProject = async (
     projectId: string,
     reason: 'spam' | 'inappropriate' | 'misleading' | 'harassment' | 'other',
@@ -399,6 +462,11 @@ function App() {
     }
   };
 
+  /**
+   * Send a chat message to the LLM assistant and return its response.
+   * @param query - The user's natural-language question or request.
+   * @returns The LLM's text response.
+   */
   const sendLlmMessage = async (query: string): Promise<string> => {
     const res = await fetch('/llm_api/prompt_llm', {
       method: 'POST',
