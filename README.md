@@ -185,8 +185,6 @@ root/
 
 ## Retrospective (Lessons Learned)
 
-## Retrospective (Lessons Learned)
-
 - **Team collaboration worked well.** Dividing the project into frontend and backend responsibilities allowed us to make steady progress without blocking each other.
 
 - **Breaking problems into smaller pieces was important.** Early on, there was a tendency to try to understand the entire system at once, which slowed progress. Focusing on smaller, well-defined tasks made development more manageable.
